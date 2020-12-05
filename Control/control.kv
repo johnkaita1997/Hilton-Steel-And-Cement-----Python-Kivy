@@ -1,0 +1,78 @@
+#:import utils kivy.utils
+#: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+
+<MySpinnerOption@SpinnerOption>:
+    on_release: app.root.signin_widget.spinner_selected(self.text)
+
+<ControlWindow>:
+    name: "main"
+    orientation: "vertical"
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex('#ffffff')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        spacing: 20
+        orientation: 'vertical'
+
+        Label:
+            text: 'Hilton Steel And Cement Point Of Sale'
+            size_hint_x: 1
+            size_hint_y: None
+            height: 30
+            bold: True
+            color: (1,1,1,1)
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex('#5B2437')
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+        BoxLayout:
+            id: unamebox
+            orientation: 'vertical'
+
+            Label:
+                font_size: 30
+                size_hint_x: 1
+                text: "Enter Product Key"
+                color: utils.get_color_from_hex('#5B2437')
+
+        BoxLayout:
+            id: unamebox
+            orientation: 'vertical'
+            Image:
+                source: 'BaseLogin/mainicon.jpg'
+                size: self.texture_size
+
+
+    BoxLayout:
+        padding: [170, 60, 170, 10]
+        spacing: 10
+        id: unamebox
+        orientation: 'vertical'
+
+        TextInput:
+            id: enteredproductkey
+            hint_text: "Product Key"
+            multiline: False
+            write_tab: False
+            focus: True
+            size_hint_y: None
+            height: 40
+
+
+        Button:
+            id: uid
+            size_hint_y: None
+            height: 40
+            text: "Check"
+            id: button
+            on_release: root.product_Key_Check()
+
+    Label:

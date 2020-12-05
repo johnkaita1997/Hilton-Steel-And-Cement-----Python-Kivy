@@ -1,0 +1,2 @@
+str(self.location[0])
+WHERE location=%s", (str(self.location[0]),))

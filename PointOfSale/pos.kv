@@ -2,6 +2,16 @@
 #:import utils kivy.utils
 #: import Window kivy.core.window.Window
 #: import datetime datetime
+#:import Factory kivy.factory.Factory
+
+<PaymentSpinner@SpinnerOption>:
+    on_release: app.root.pos_widget.on_purchase_spinner_select(self.text)
+
+<CustomerSpinner@SpinnerOption>:
+    on_release: app.root.pos_widget.selectedCustomer(self.text)
+
+<CategorySpinner@SpinnerOption>:
+    on_release: app.root.pos_widget.on_spinner_select(self.text)
 
 <FlatButton@ButtonBehavior+Label>:
     font_size: 14
@@ -74,10 +84,13 @@
             size_hint_y: None
             height: 30
 
-            Label:
-                text: 'Cocab Tech Solutions POS'
+            Button:
+                id: headerlabel
+                text: root.headerlabel
                 size_hint_x: .6
                 bold: True
+                background_color: utils.get_color_from_hex('#5B2437')
+                on_release: root.checkifadmin()
                 color: (1,1,1,1)
                 canvas.before:
                     Color:
@@ -85,6 +98,7 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
+
 
 
             FlatButton:
@@ -154,7 +168,6 @@
             hint_text: 'Code | Product Name'
             size_hint_x: .7
             multiline: False
-            on_text_validate: root.change_quantity()
 
         Button:
             size_hint_x: .3
@@ -193,26 +206,38 @@
                     pos: self.pos
 
             Spinner:
+                option_cls: Factory.get('CategorySpinner')
                 id: thespinner
                 text: "Select A Category"
                 size_hint_x: 1
                 size_hint_y: None
                 height: 40
 
-            StackLayout:
-                padding: 10
-                spacing: 10
-                id: thebox
-                size_hint_y: .8
-                size_hint_x: 1
+            ScrollView:
+                id: scroll
+                size: self.size
                 canvas.before:
                     Color:
-                        rgba: (1, 1, 1, 1)
+                        rgb: utils.get_color_from_hex('#ffffff')
                     Rectangle:
                         size: self.size
                         pos: self.pos
 
-                Widget:
+                StackLayout:
+                    padding: 10
+                    spacing: 1
+                    id: thebox
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    canvas.before:
+                        Color:
+                            rgba: (1, 1, 1, 1)
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+
+                    Widget:
 
         #END OF THE LISTVIEW BOX
 
@@ -268,21 +293,28 @@
                     size_hint_x: .3
                     write_tab: False
                     multiline: False
+                    input_filter: 'float'
                     on_text_validate: root.change_quantity()
                     id: number
-                    hint_text: 'Number of items'
+                    hint_text: 'Change Weight'
 
                 TextInput
                     write_tab: False
                     multiline: False
-                    on_text_validate: root.change_discount()
+                    input_filter: 'float'
                     size_hint_x: .3
                     id: discount
-                    hint_text: 'Disc per prod'
+                    hint_text: 'Total Discount'
+
+                Button:
+                    size_hint_x: .2
+                    text: "Disc"
+                    on_release: root.change_discount()
+
 
             #BOX FOR SHOP NAME
             BoxLayout:
-                size_hint_y: .1
+                size_hint_y: .2
                 id: shoopnameHolder
                 orientation: 'vertical'
                 canvas.before:
@@ -294,43 +326,80 @@
                         pos: self.pos
                 Label:
                     color: utils.get_color_from_hex('#ffffff')
-                    text : "The Name Of Shop  ||  123 Main Street, SP\n Tel: 0729836000                   Date:" + datetime.datetime.today().strftime('%Y-%m-%d')
+                    text : "Hilton Steel And Cement  ||  Main Street, Nak.\n Tel: 0727441192                   Date:" + datetime.datetime.today().strftime('%Y-%m-%d')
 
             #BOX FOR DYNAMIC ITEMS
 
-            StackLayout:
-                padding: 10
-                size_hint_Y: 1
-                size_hint_y: .8
-                id: receipt_Preview
+            ScrollView:
+                id: scrollView
+
+                StackLayout:
+                    padding: 10
+                    size_hint_Y: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    id: receipt_Preview
 
             #END OF THE DYNAMIC ITEMS
 
 
             #BEGIN OF LAST BOX
             BoxLayout:
-                size_hint_y: .2
+                size_hint_y: .3
                 id: theending
                 orientation: 'vertical'
-                Button:
-                    id: thetotal
-                    text: "Total : 0.0"
-                BoxLayout:
 
+                BoxLayout:
+                    orientation: 'horizontal'
+
+                    Button:
+                        id: thetotal
+                        text: "Total : 0.0"
+
+                    Button:
+                        id: thebalance
+                        text: "Bal : 0.0"
+
+                BoxLayout:
+                    id: show
+                    orintation: 'horizontal'
+
+                    TextInput:
+                        id: amountinput
+                        multiline: False
+                        hint_text:'Amount Entered'
+                        input_filter: 'int'
+                        on_text: root.error = ''
+
+                    TextInput:
+                        id: mpesacode
+                        multiline: False
+                        hint_text:'Client Name or Code'
+                        on_text: root.error = ''
+
+
+                BoxLayout:
+                    id: paymentbox
                     Spinner:
+                        option_cls: Factory.get('PaymentSpinner')
                         id: payment_spinner
                         size_hint_x: .2
                         text: "Payment"
 
-                    Button:
-                        size_hint_x: .2
-                        text: "clear"
-                        on_release: root.clearWidgets()
 
                     Button:
                         size_hint_x: .2
                         text: "Print"
                         on_release: root.print_output()
+
+
+                    Spinner:
+                        option_cls: Factory.get('CustomerSpinner')
+                        id: paymenthold
+                        size_hint_x: .2
+                        text: "Customer"
+
+
 
         #THE END OF THE LAST BAR IS HERE
 
@@ -345,7 +414,8 @@
                 size: self.size
         id: footer
         Label:
-            text: "System Maintained by Cocab Tech Solutions (0729836000)"
+            id: namelabel
+            text: "System Maintained by Hilton Steel And Cement (0729836000)"
 
 
 

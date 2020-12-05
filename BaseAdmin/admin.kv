@@ -1,6 +1,53 @@
 #:import utils kivy.utils
 #: import Window kivy.core.window.Window
 
+
+<TextInputPopup>:
+    title: "New number of items"
+    size_hint: None, None
+    size: 300, 200
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            opacity: 0
+            size_hint_y: .2
+            text: "Ensure you select on the id"
+        TextInput:
+            hint_text: "Click and enter number"
+            input_filter: 'float'
+            size_hint_y: .2
+            id: txtinput
+            text: ""
+        Spinner:
+            values: 'Available', 'Unavailable'
+            id: spinnerinput
+            size_hint_y: .2
+            text: "Available"
+            on_release:
+        Button:
+            size_hint_y: .2
+            text: "Save Changes"
+            on_release:
+                root.obj.update_changes(txtinput.text, spinnerinput.text, root.obj_text)
+                root.dismiss()
+        Button:
+            size_hint_y: .2
+            text: "Dismiss"
+            on_release: root.dismiss()
+
+
+<SelectableButton>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
 <AdminWindow>:
     id: 'main'
     orientation: "vertical"
@@ -31,6 +78,7 @@
                 on_release: root.logout()
 
             Label:
+                id: uname
                 text: 'Admin Dashboard'
                 bold: True
                 size_hint_x: .8
@@ -77,15 +125,6 @@
                     group: 'admin_navs'
                     on_state: root.change_screen(self)
 
-                ToggleButton:
-                    id: user_toggle
-                    text: 'Point Of Sale'
-                    size_hint_y: 1
-                    background_color: (.06, .47, .47, 1)
-                    background_normal: ''
-                    group: 'admin_navs'
-                    on_state: root.change_screen(self)
-
 
                 ToggleButton:
                     id: user_toggle
@@ -97,8 +136,74 @@
                     on_state: root.change_screen(self)
 
 
-                Label:
-                    text : ''
+                ToggleButton:
+                    id: inventory_toggle
+                    text: 'Inventory'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen(self)
+
+                ToggleButton:
+                    id: inventory_toggle
+                    text: 'Braches'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen(self)
+
+
+                ToggleButton:
+                    id: standalone_toggle
+                    text: 'StandAlone'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen(self)
+
+
+                ToggleButton:
+                    id: standalone_toggle
+                    text: 'Refresh'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen(self)
+
+
+                ToggleButton:
+                    id: standalone_toggle
+                    text: 'Additions'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen(self)
+
+
+                ToggleButton:
+                    id: standalone_toggle
+                    text: 'Expenses'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.go_To_Expenses()
+
+
+                Button:
+                    id: user_toggle
+                    text: 'Point Of Sale'
+                    size_hint_y: 1
+                    background_color: (.06, .47, .47, 1)
+                    background_normal: ''
+                    group: 'admin_navs'
+                    on_state: root.change_screen_alpha()
+
 
             BoxLayout:
                 padding: 10
@@ -116,6 +221,8 @@
                 ScreenManager:
                     padding: 10
                     id: scrn_mngr
+
+                    #BEGINNING OF MANAGE USERS SCREEN
                     Screen:
                         id: scrn_content_manage_users
                         name: 'scrn_content_manage_users'
@@ -149,14 +256,185 @@
                                     id: crud_remove
                                     text: 'Remove User'
                                     on_release: root.remove_user_fields()
+
+                    #END OF MANAGE USERS SCREEN
+
+
+
+
+
+                    #BEGINNING OF MANAGE PRODUCTS SCREEN
                     Screen:
                         id: scrn_product_content
                         name: 'scrn_product_content'
                         BoxLayout:
                             orientation: 'vertical'
                             spacing: 10
+
                             BoxLayout:
-                                id: scrn_product_contents
+                                size_hint_y: None
+                                height: 25
+                                spacing: 30
+                                orientation: 'horizontal'
+                                id: well
+
+                                BoxLayout:
+                                    spacing: 10
+                                    size_hint_y: None
+                                    height: 30
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        id: sdaythird
+                                        size_hint_y: None
+                                        height: 25
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: smonththird
+                                        size_hint_x: .1
+                                        text: " MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: syearthird
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                    #END OF START DATES
+
+
+
+                                #BEGINNING OF END DATES
+                                BoxLayout:
+                                    spacing: 10
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: edaythird
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: emonththird
+                                        size_hint_x: .1
+                                        text: "MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: eyearthird
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                    Button:
+                                        size_hint_y: None
+                                        height: 25
+                                        size_hint_x: .1
+                                        id: crud_search_p
+                                        text: 'Find'
+                                        on_release: root.dated_product_search()
+
+                                #END OF END DATES
+                            Label:
+                                size_hint_y: None
+                                height: 7
+
+
+                            BoxLayout
+                                size_hint_y: None
+                                height: 30
+                                id: boxer
+                                orientation: 'horizontal'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Code'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Name'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'B.Price'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'S.Price'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Category'
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Date'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Total'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Stock'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Subcategory'
+
+                            Label:
+                                size_hint_y: None
+                                height: 1
+
+                            RecycleView:
+                                size_hint_y: .8
+                                viewclass: 'SelectableButton3'
+                                data: [{'text': str(x)} for x in root.data_items_sec]
+
+                                SelectableRecycleGridLayout:
+                                    padding: (0, 1)
+                                    spacing: (0, 5)
+                                    cols: 9
+                                    default_size: None, dp(30)
+                                    default_size_hint: 1, None
+                                    size_hint_y: None
+                                    height: self.minimum_height
+                                    orientation: 'horizontal'
+                                    multiselect: True
+                                    touch_multiselect: True
+
                             BoxLayout:
                                 id: ops_fields_p
                                 spacing: 10
@@ -168,30 +446,52 @@
                                 size_hint_y: None
                                 height: 45
                                 Button:
+                                    background_color: (.06, .47, .47, 1)
                                     id: crud_add_p
-                                    text: 'Add New Product'
+                                    text: 'Add New Prod'
                                     on_release: root.add_product_fields()
+
+                                #Button:
+                                #   id: crud_update_p
+                                #    text: 'Update Prod'
+                                #   on_release: root.update_product_fields()
+
                                 Button:
-                                    id: crud_update_p
-                                    text: 'Update Product'
-                                    on_release: root.update_product_fields()
-                                Button:
+                                    background_color: (.06, .47, .47, 1)
                                     id: crud_remove_p
-                                    text: 'Remove Product'
+                                    text: 'Remove Prod'
                                     on_release: root.remove_product_fields()
+
                                 Button:
+                                    background_color: (.06, .47, .47, 1)
                                     id: crud_search_p
-                                    text: 'Search product'
-                                    on_release: root.search_Field()
-                                Button:
-                                    id: crud_search_p
-                                    text: 'Create Prod Cat'
+                                    text: 'Create Main Cat'
                                     on_release: root.add_product_category_field()
                                 Button:
+                                    background_color: (.06, .47, .47, 1)
                                     id: crud_search_p
-                                    text: 'Product Categories'
+                                    text: 'Create Sub Cat'
+                                    on_release: root.add_product_sub_category_fields()
+
+                                Button:
+                                    background_color: (.06, .47, .47, 1)
+                                    id: crud_search_p
+                                    text: 'Prod Cat'
                                     on_release: root.view_categories()
 
+                                Button:
+                                    background_color: (.06, .47, .47, 1)
+                                    id: crud_search_p
+                                    text: 'Export'
+                                    on_release: root.export_Products_Today()
+
+                    #END OF MANAGE PRODUCTS SCREEN
+
+
+
+
+
+                    #BEGINNING OF CHOOSE PRODUCT ANALYSIS VIEW ALL PRODUCTS SCREEN
                     Screen:
                         id: scrn_analysis
                         name: 'scrn_analysis'
@@ -204,7 +504,7 @@
                                 height: 45
                                 Spinner:
                                     id: target_product
-                                    text: 'Choose Product'
+                                    text: 'Choose Prod'
                                 Button:
                                     id: submit_analysis
                                     text: 'View Stats'
@@ -213,7 +513,15 @@
                             BoxLayout:
                                 id: analysis_res
 
+                    #END OF CHOOSE PRODUCT ANALYSIS SCREEN VIEW ALL PRODUCTS CHOOSEN
 
+
+
+
+
+
+
+                    #BEGINNING OF PRODUCT CATEGORIES VIEW SCREEN
                     Screen:
                         id: scrn_product_categorized
                         name: 'scrn_product_categorized'
@@ -227,8 +535,15 @@
                         BoxLayout:
                             id: analysis_res
 
+                    #END OF PRODUCT CATEGORIES VIEW SCREEEN
 
 
+
+
+
+
+
+                    #BEGINNING OF THE SEARCH PRODUCT SCREEN
                     Screen:
                         id: screen_search_product
                         name: 'screen_search_product'
@@ -239,11 +554,26 @@
                         BoxLayout:
                             id: display_searched_products
 
+
+                        BoxLayout:
+                            id: ops_btns
+                            spacing: 10
+                            size_hint_y: None
+                            height: 45
+
                         BoxLayout:
                             id: analysis_res
 
+                    #END OF THE SEARCH PRODUCT SCREEN
 
 
+
+
+
+
+
+
+                    #BEGINNNING OF THE SALES SCREEN
                     Screen:
                         id: screen_display_sales
                         name: 'screen_display_sales'
@@ -254,25 +584,560 @@
                             BoxLayout:
                                 spacing: 20
                                 orientation: 'horizontal'
-                                size_hint_y:.4
+                                size_hint_y:.6
 
                                 TextInput:
                                     size_hint_x: .6
-                                    id: the_sales
-                                    hint_text: " Search by date"
+                                    id: transactioncode
+                                    hint_text: " Transaction Code"
+
+                                Button:
+                                    size_hint_x: .4
+                                    id: crud_search_p
+                                    text: 'Print'
+                                    on_release: root.print_special_receipt()
+
+                            #BoxLayout:
+                            #    spacing: 20
+                            #    orientation: 'horizontal'
+                            #    size_hint_y:.6
+
+                            #    TextInput:
+                            #        size_hint_x: .6
+                            #        id: the_sales
+                            #        hint_text: " Enter Expenses"
+
+                            #    Button:
+                            #        size_hint_x: .4
+                            #        id: crud_search_p
+                            #        text: 'Calc Profit or Loss'
+                            #        on_release: root.searchForTheDates()
+
+                            #BEGINNING OF START DATES
+                            BoxLayout:
+                                spacing: 20
+                                orientation: 'horizontal'
+                                size_hint_y:.6
+
+                                BoxLayout:
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        id: sday
+                                        size_hint_y: None
+                                        height: 25
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: smonth
+                                        size_hint_x: .1
+                                        text: " MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: syear
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                #END OF START DATES
+
+
+
+                                #BEGINNING OF END DATES
+                                BoxLayout:
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: eday
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: emonth
+                                        size_hint_x: .1
+                                        text: "MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: eyear
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                #END OF END DATES
+
 
                                 Button:
                                     size_hint_x: .4
                                     id: crud_search_p
                                     text: 'Find'
-                                    on_release: root.searchForTheDates()
+                                    on_release: root.periodicsearch()
 
                             BoxLayout:
-                                size_hint_y: 6
+                                size_hint_y: 8
                                 id: display_sales
+
+                            BoxLayout:
+                                id: ops_fields_invoice
+                                spacing: 10
+                                size_hint_y: None
+                                height: 35
+
+                            BoxLayout:
+                                orientaion: 'horizontal'
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    id: total_sales_select
+                                    text: 'Tot Sales: Select Period'
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    text: 'Export | Today'
+                                    on_release: root.export_Sales()
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    text: 'Export All'
+                                    on_release: root.print_sales()
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    text: 'Invoice'
+                                    on_release: root.fetchInvoice()
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    text: 'Deni'
+                                    on_release: root.findsalesDeni()
+
 
                         BoxLayout:
                             id: analysis_res
+
+                    #END OF THE DISPLAY SALES SCREEN FINAL END OF THE PROGRAM
+
+
+
+
+
+
+
+                    #THIS IS THE BEGINNING OF BRANCHES SCREEN
+                    Screen:
+                        id: scrn_branches
+                        name: 'scrn_branches'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+
+                            BoxLayout:
+                                id: scrn_branches
+
+                            BoxLayout:
+                                id: ops_fields_branches
+                                spacing: 10
+                                size_hint_y: None
+                                height: 35
+
+                            BoxLayout:
+                                id: ops_btns
+                                spacing: 10
+                                size_hint_y: None
+                                height: 45
+                                Button:
+                                    id: crud_add
+                                    text: 'Add Brach'
+                                    on_release: root.add_branch_fields()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'Delete Branch'
+                                    on_release: root.remove_branch_fields()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'Expenses'
+                                    on_release: root.endakwaExpenses()
+
+                    #THIS IS THE END OF BRANCHES SCREEN
+
+
+
+
+
+
+
+                    #THE BEGINNING OF THE INVENTORY SCREEN
+                    Screen:
+                        orientaion: 'vertical'
+                        id: screen_inventory
+                        name: 'screen_inventory'
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+
+                            BoxLayout:
+                                spacing: 20
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: 30
+
+                                TextInput:
+                                    size_hint_x: .6
+                                    id: nipe
+                                    hint_text: "Code or Name"
+
+                                Button:
+                                    size_hint_x: .4
+                                    id: crud_search_p
+                                    text: 'Search'
+                                    on_release: root.searchInventory()
+
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: 45
+                                orientation: 'horizontal'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Sub Category'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Category'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Stock'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Available'
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'B. Price'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'S.Price'
+
+                                Button:
+                                    size_hint_y: None
+                                    background_color: (.06, .47, .47, 1)
+                                    height: 45
+                                    text: 'Code'
+
+
+                            BoxLayout:
+                                id: yourecycleyou
+                                orientation: 'vertical'
+                                size_hint_y: None
+                                height: 400
+
+                                RecycleView:
+                                    id: heyrecyclerview
+                                    viewclass: 'SelectableButton'
+                                    data: [{'text': str(x)} for x in root.data_items]
+                                    SelectableRecycleGridLayout:
+                                        cols: 7
+                                        default_size: None, dp(26)
+                                        default_size_hint: 1, None
+                                        size_hint_y: None
+                                        height: self.minimum_height
+                                        orientation: 'horizontal'
+                                        multiselect: True
+                                        touch_multiselect: True
+
+                            BoxLayout:
+                                id: analysis_res
+
+                            BoxLayout:
+                                id: ops_fields_pfinal
+                                spacing: 10
+                                size_hint_y: None
+                                height: 30
+
+                            BoxLayout:
+                                id: ops_btns
+                                spacing: 10
+                                size_hint_y: None
+                                height: 30
+
+                                Button:
+                                    background_color: (.06, .47, .47, 1)
+                                    text: 'Refresh'
+                                    id: hell
+                                    on_release: root.refreshRecyclerView()
+
+                                Button:
+                                    background_color: (.06, .47, .47, 1)
+                                    id: total_inventory
+                                    text: 'Total Number Of Prods Available'
+
+                                Button:
+                                    background_color: (.06, .47, .47, 1)
+                                    id: total_inve
+                                    text: 'Export'
+                                    on_release: root.exportInventory()
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 35
+                                    text: 'Edit Cat'
+                                    on_release: root.add_edit_inventory_fields()
+
+
+                    #END OF THE INVENTORY SCREEN
+
+
+
+
+
+                    #BEGINNING OF STANDALONE SCREEN
+                    Screen:
+                        id: scrn_StandAlone
+                        name: 'scrn_StandAlone'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+
+                            BoxLayout:
+                                spacing: 20
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: 35
+
+                                TextInput:
+                                    size_hint_x: .6
+                                    id: looking_for_client
+                                    hint_text: " Client Id"
+
+                                Button:
+                                    size_hint_x: .4
+                                    id: crud_search_p
+                                    text: 'Client Search'
+                                    on_release: root.client_Search()
+
+                            #BEGINNING OF START DATES
+                            BoxLayout:
+                                spacing: 20
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: 35
+
+                                BoxLayout:
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        id: sdaysec
+                                        size_hint_y: None
+                                        height: 25
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: smonthsec
+                                        size_hint_x: .1
+                                        text: " MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: syearsec
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                #END OF START DATES
+
+
+
+                                #BEGINNING OF END DATES
+                                BoxLayout:
+                                    orientation : 'horizontal'
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: edaysec
+                                        size_hint_x: .1
+                                        text: " DD"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: emonthsec
+                                        size_hint_x: .1
+                                        text: "MM"
+
+                                    Spinner:
+                                        background_color: (.06, .47, .47, 1)
+                                        size_hint_y: None
+                                        height: 25
+                                        id: eyearsec
+                                        size_hint_x: .1
+                                        text: " YYYY"
+
+                                #END OF END DATES
+
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 25
+                                    size_hint_x: .4
+                                    id: crud_search_p
+                                    text: 'Normal'
+                                    on_release: root.periodicsearch_Normal()
+
+                                #Button:
+                                #    size_hint_y: None
+                                #    height: 25
+                                #    size_hint_x: .4
+                                #    id: crud_search_p
+                                #    text: 'Advanced'
+                                #    on_release: root.periodicsearch_Advanced()
+
+                                Button:
+                                    size_hint_y: None
+                                    height: 25
+                                    size_hint_x: .4
+                                    id: crud_search_p
+                                    text: 'All'
+                                    on_release: root.periodicsearch_All()
+
+
+                            BoxLayout:
+                                id: scrn_display_all_client_statuses
+
+                            BoxLayout:
+                                id: ops_fields_standalone
+                                spacing: 10
+                                size_hint_y: None
+                                height: 35
+
+                            BoxLayout:
+                                id: ops_btns_p
+                                spacing: 10
+                                size_hint_y: None
+                                height: 45
+
+                                Button:
+                                    id: crud_add_p
+                                    text: 'Money Transaction'
+                                    on_release: root.add_money_fields()
+
+                                Button:
+                                    id: crud_add_p
+                                    text: 'Export Result'
+                                    on_release: root.export_result()
+
+                                Button:
+                                    id: crud_add_p
+                                    text: 'Negatives'
+                                    on_release: root.load_negative_money()
+
+
+                    #END OF STANDALONE SCREEN
+
+
+                    #THIS IS THE BEGINNING OF THE ADDITIONS SCREEN
+                    Screen:
+                        id: added
+                        name: 'added'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+
+                            StackLayout:
+                                id: pushed
+
+                                StackLayout:
+                                    id: addition_fields
+                                    spacing: 10
+                                    size_hint_y: None
+                                    height: 35
+
+
+                                Label:
+
+                            Label:
+                                id: empty_labe
+
+
+                            BoxLayout:
+                                id: ops_btns
+                                spacing: 10
+                                size_hint_y: None
+                                height: 45
+                                Button:
+                                    id: crud_add
+                                    text: 'Departure Addition'
+                                    on_release: root.departure()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'Arrival Addition'
+                                    on_release: root.arrival()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'View All Addition'
+                                    on_release: root.view_additions()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'Save Extras'
+                                    on_release: root.save_extras()
+
+                                Button:
+                                    id: crud_remove
+                                    text: 'View Extras'
+                                    on_release: root.view_Extras()
+
+                    #THIS IS THE END OF THE ADDITIONS SCREEN
+
+
+
+
 
 
 
@@ -287,4 +1152,4 @@
                     size: self.size
             id: footer
             Label:
-                text: "System Maintained by Cocab Tech Solutions (0729836000)"
+                text: "System Maintained by Hilton Steel And Cement (0729836000)"

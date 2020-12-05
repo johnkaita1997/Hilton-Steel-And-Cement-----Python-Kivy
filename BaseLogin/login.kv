@@ -1,5 +1,9 @@
 #:import utils kivy.utils
 #: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+
+<MySpinnerOption@SpinnerOption>:
+    on_release: app.root.signin_widget.spinner_selected(self.text)
 
 <LoginWindow>:
     name: "main"
@@ -16,7 +20,7 @@
         orientation: 'vertical'
 
         Label:
-            text: 'Cocab Tech Solutions Point Of Sale'
+            text: 'Hilton Steel And Cement Point Of Sale'
             size_hint_x: 1
             size_hint_y: None
             height: 30
@@ -54,7 +58,7 @@
                 Label:
                     size_hint_x: 1
                     font_size: 30
-                    text: "Cocab Tech Solutions"
+                    text: "Hilton Steel And Cement"
                     color: utils.get_color_from_hex('#5B2437')
 
                 Image:
@@ -65,7 +69,7 @@
                     id: hey
                     size_hint_x: 1
                     halign: 'center'
-                    text: "Email: cocabsolutions@gmail.com\nMobile: 0729836000"
+                    text: "For modern, reliable: Desktop Apps, Android Apps, Websites, Blogs\nEmail: cocabsolutions@gmail.com\nMobile: 0729836000"
                     color: utils.get_color_from_hex('#5B2437')
 
 
@@ -106,10 +110,19 @@
                         id: unamebox
                         orientation: 'vertical'
 
+                        Spinner:
+                            option_cls: Factory.get('MySpinnerOption')
+                            id: branch
+                            size_hint_x: 1
+                            text: "Select Branch"
+                            size_hint_y: None
+                            height: 40
+
+
                         TextInput:
                             id: email
                             size_hint_x: 1
-                            hint_text: "Email"
+                            hint_text: "Email - Type any letter"
                             multiline: False
                             write_tab: False
                             focus: True
@@ -119,20 +132,20 @@
 
                         TextInput:
                             id: password
+                            input_filter: 'int'
                             size_hint_x: 1
                             size_hint_y: None
                             height: 40
                             hint_text: "Password"
                             multiline: False
                             write_tab: False
-                            on_text_validate: pwd_field.focus = True
+                            password: True
 
-                        BoxLayout:
-                            id: unamebox
-                            orientation: 'vertical'
-                            Button:
-                                size_hint_y: None
-                                height: 40
-                                text: "Login"
-                                id: button
-                                on_release: root.login_user()
+
+                        Button:
+                            id: uid
+                            size_hint_y: None
+                            height: 40
+                            text: "Login"
+                            id: button
+                            on_release: root.login_user()

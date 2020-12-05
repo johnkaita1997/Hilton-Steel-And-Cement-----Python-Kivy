@@ -1,0 +1,197 @@
+#:import utils kivy.utils
+#: import Window kivy.core.window.Window
+
+
+<ExtrasWindow>:
+    id: 'main'
+    orientation: "vertical"
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex('#ffffff')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        BoxLayout:
+            id: wid
+            size_hint_y: None
+            height: 30
+
+            Button:
+                id: file_trigger
+                text: 'Fetch All'
+                size_hint_x: .1
+                on_release: root.fectchall()
+
+            Button:
+                id: file_trigger
+                text: 'Export All'
+                size_hint_x: .1
+                on_release: root.export_all_additions()
+
+            Button:
+                id: file_trigger
+                text: 'Export Dated'
+                size_hint_x: .1
+                on_release: root.export_dated()
+
+            Label:
+                id: uname
+                text: 'Admin Dashboard - Extras'
+                bold: True
+                size_hint_x: .8
+                height: 30
+                canvas.before:
+                    Color:
+                        rgb: utils.get_color_from_hex('#5B2437')
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+            Button:
+                id: file_trigger
+                text: 'Back'
+                size_hint_x: .1
+                on_release: root.root_Go_back()
+
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            BoxLayout:
+                spacing: 20
+                orientation: 'horizontal'
+                size_hint_y: .069
+
+                TextInput:
+                    size_hint_x: .6
+                    id: theidnumber
+                    hint_text: " Id Number"
+
+                Button:
+                    size_hint_x: .4
+                    id: crud_search_p
+                    text: 'Search By Id Number'
+                    on_release: root.search_Id()
+
+            #BEGINNING OF START DATES
+            BoxLayout:
+                spacing: 20
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 35
+
+                BoxLayout:
+                    orientation : 'horizontal'
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        id: sdaysec
+                        size_hint_y: None
+                        height: 25
+                        size_hint_x: .1
+                        text: " DD"
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        size_hint_y: None
+                        height: 25
+                        id: smonthsec
+                        size_hint_x: .1
+                        text: " MM"
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        size_hint_y: None
+                        height: 25
+                        id: syearsec
+                        size_hint_x: .1
+                        text: " YYYY"
+
+                #END OF START DATES
+
+
+
+                #BEGINNING OF END DATES
+                BoxLayout:
+                    orientation : 'horizontal'
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        size_hint_y: None
+                        height: 25
+                        id: edaysec
+                        size_hint_x: .1
+                        text: " DD"
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        size_hint_y: None
+                        height: 25
+                        id: emonthsec
+                        size_hint_x: .1
+                        text: "MM"
+
+                    Spinner:
+                        background_color: (.06, .47, .47, 1)
+                        size_hint_y: None
+                        height: 25
+                        id: eyearsec
+                        size_hint_x: .1
+                        text: " YYYY"
+
+                #END OF END DATES
+
+
+                Button:
+                    size_hint_y: None
+                    height: 25
+                    size_hint_x: .4
+                    id: crud_search_p
+                    text: 'Dated Search'
+                    on_release: root.dated_Search()
+
+            BoxLayout:
+                id: yourecycleyou
+                orientation: 'vertical'
+
+                RecycleView:
+                    size_hint_y: .8
+
+                    id: heyrecyclerview
+                    viewclass: 'SelectableButton2'
+                    data: [{'text': str(x)} for x in root.data_items]
+
+                    SelectableRecycleGridLayout:
+                        padding: (0, 20)
+                        spacing: (0, 50)
+                        cols: 4
+                        default_size: None, dp(450)
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        orientation: 'horizontal'
+                        multiselect: True
+                        touch_multiselect: True
+
+        Label:
+            size_hint_y:  .01
+
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex('#5B2437')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            id: footer
+            Label:
+                text: "System Maintained by Cocab Tech Solutions (0729836000)"
