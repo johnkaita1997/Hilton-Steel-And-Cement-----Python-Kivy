@@ -1,6 +1,7 @@
 from BaseAdmin.admin import AdminWindow
 from kivy.config import Config
 import pandas as pd
+import time
 
 Config.set('graphics', 'resizable', False)
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
@@ -121,33 +122,71 @@ class ExpensesWindow(BoxLayout):
             self.showAlert(str(exception))
 
 
-    def expenses_submit(self):
-        thename = self.ids.name_of_expense.text.strip()
-        theamount = self.ids.amount_of_expense.text.strip()
-
-        if not thename or not theamount:
-            if not thename:
-                self.showAlert("Enter the name")
-            if not theamount:
-                self.showAlert("Enter thte amount")
-        else:
-
-            #Add to the database
-            datte = {}
-            datte["date"] = overall.today
-            datte["name"] = thename
-            datte["amount"] = theamount
+    def delete_expense(self):
 
         try:
-            overall.db.child("expenses").push(datte)
+            theid = str(int(time.time()))
+
+            if not theid:
+                self.showAlert("Enter the ID")
+            else:
+
+                path = overall.dbs.reference('expenses')
+                theshot = path.order_by_child('id').equal_to(theid).get() or path.order_by_child('id').equal_to(
+                    theid.capitalize()).get()
+                if theshot:
+
+                    for key in theshot.keys():
+                        print("dictionary includes", key)
+
+                    overall.db.child("expenses").child(key).remove()
+
+
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
+
+        except Exception as exception:
+
+            self.showAlert(str(exception))
+        else:
+            self.showAlert("Operation was successful")
+            self.ids.id.text = ''
+
+
+    def expenses_submit(self):
+
+        try:
+            thename = self.ids.name_of_expense.text.strip()
+            theamount = self.ids.amount_of_expense.text.strip()
+            theid = self.ids.id.text.strip()
+
+            if thename == '' or theamount == '' or not theid:
+                self.showAlert("You have to enter all fields")
+            else:
+
+                # Add to the database
+                datte = {}
+                datte["date"] = overall.today
+                datte["name"] = thename
+                datte["amount"] = theamount
+                datte["id"] = theid
+
+                try:
+                    overall.db.child("expenses").push(datte)
+                except Exception as exception:
+                    self.showAlert(str(exception))
+                else:
+                    self.showAlert("Operation was successful")
+
+            self.ids.name_of_expense.text = ''
+            self.ids.amount_of_expense.text = ''
+            self.ids.id.text = ''
+
         except Exception as exception:
             self.showAlert(str(exception))
 
-        else:
-            self.showAlert("Operation Successful")
 
-        self.ids.name_of_expense.text = ''
-        self.ids.amount_of_expense.text = ''
+
 
 
 
@@ -223,8 +262,9 @@ class ExpensesWindow(BoxLayout):
                             date = sale['date']
                             name = sale['name']
                             amount = sale['amount']
+                            id = sale['id']
                             the_total_search.append(float(amount))
-                            list.append((date, name, amount))
+                            list.append((date, name, amount, id))
 
                     total = str(sum(the_total_search))
                     self.ids.expenses_text.text = "Periodic Search:             Total Expenses:     KES:    " + total
@@ -241,7 +281,9 @@ class ExpensesWindow(BoxLayout):
 
             except Exception as exception:
                 self.showAlert(str(exception))
+                print(str(exception))
         except Exception as exception:
+            print(str(exception))
             self.showAlert(str(exception))
 
 
@@ -368,10 +410,11 @@ class ExpensesWindow(BoxLayout):
                     date = value['date']
                     name = value['name']
                     amount = value['amount']
+                    id = value['id']
 
                     the_total_search.append(float(amount))
 
-                    list.append((date, name, amount))
+                    list.append((date, name, amount, id))
                 self.data_items = []
                 # create data_items
                 for row in list:

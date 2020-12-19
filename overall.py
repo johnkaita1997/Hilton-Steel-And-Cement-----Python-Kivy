@@ -1,4 +1,5 @@
 #PYREBASE FIREBASE
+import time
 from kivy.properties import StringProperty
 import firebase_admin
 from firebase_admin import credentials
@@ -40,3 +41,5 @@ minute = str(now.minute)
 second = str(now.second)
 combined_date = str(hour) + str(minute) + str(second)
 today = str(datetime.datetime.today().date())
+stamp = str(int(time.time()))
+

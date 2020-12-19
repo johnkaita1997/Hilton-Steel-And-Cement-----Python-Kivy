@@ -1,6 +1,7 @@
 import datetime
 import os
 import tempfile
+import time
 from random import randint
 
 import texttable as tt
@@ -179,6 +180,43 @@ class AdminWindow(BoxLayout):
 
         self.notify = Notify()
 
+    def remove_transaction(self):
+        try:
+            target = self.ids.ops_fields_standalone
+            target.clear_widgets()
+            self.idremove = TextInput(hint_text='Identity', input_filter='float', multiline=False, write_tab=False)
+            crud_submit = Button(text='Remove', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.remove_standalone(self.idremove.text.strip()))
+
+            target.add_widget(self.idremove)
+            target.add_widget(crud_submit)
+
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+    def remove_standalone(self, id):
+        try:
+            if not id:
+                self.showAlert("You have to enter the Identity")
+            else:
+                ref = overall.db.child('transactions')
+                ref.child(id).remove()
+                history_Ref = overall.dbs.reference("history")
+                snapshot = history_Ref.order_by_child('idnumber').equal_to(id + "\uf8ff").get() or history_Ref.order_by_child('idnumber').equal_to(id.capitalize()).get()
+                if snapshot:
+                    for key in snapshot.keys():
+                        remove_history_Path = overall.db.child("history").child(key)
+                        remove_history_Path.remove()
+                else:
+                    self.showAlert("Operation aborted")
+
+                self.idremove.text = ''
+        except Exception as exception:
+            self.showAlert(str(exception))
+        else:
+            self.showAlert("Operation was successful")
+
+
 
     def endakwaExpenses(self):
         try:
@@ -188,14 +226,21 @@ class AdminWindow(BoxLayout):
 
 
     def go_To_Expenses(self):
+        self.endakwaExpenses()
+
+
+    def view_Extras(self):
         try:
-            self.parent.parent.current = 'scrn_Expenses'
+            self.go_To_Extras()
         except Exception as exception:
             self.showAlert(str(exception))
 
 
     def view_Extras(self):
-        self.go_To_Expenses()
+        try:
+            self.parent.parent.current = 'scrn_extras'
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def view_additions(self):
         try:
@@ -232,6 +277,8 @@ class AdminWindow(BoxLayout):
                     self.customer_extras.text.strip(),
                     self.the_id_number.text.strip()))
 
+                self.remove = Button(text='Remove Extras Entry', on_release=lambda x: self.remove_extras(self.the_id_number.text.strip()))
+
             except Exception as exception:
                 self.showAlert(str(exception))
 
@@ -253,6 +300,10 @@ class AdminWindow(BoxLayout):
                 self.idinput_extras.text.strip()
             ))
 
+            self.stamp_Remove = Button(text='Stamp Remove', on_release=lambda x: self.remove_stamp(
+                self.idinput_extras.text.strip()
+            ))
+
             target.add_widget(self.numberplate_extras)
             target.add_widget(self.empty_extras)
             target.add_widget(self.firstweight_extras)
@@ -260,6 +311,7 @@ class AdminWindow(BoxLayout):
             target.add_widget(self.customer_extras)
             target.add_widget(self.the_id_number)
             target.add_widget(self.crud_submit_Button)
+            target.add_widget(self.remove)
 
             target.add_widget(self.empty_label_extras_d)
 
@@ -269,6 +321,7 @@ class AdminWindow(BoxLayout):
             goods_target_extras.add_widget(self.quantity_extras)
             goods_target_extras.add_widget(self.idinput_extras)
             goods_target_extras.add_widget(self.crud_push_Button_d)
+            goods_target_extras.add_widget(self.stamp_Remove)
 
             target.add_widget(goods_target_extras)
 
@@ -279,76 +332,137 @@ class AdminWindow(BoxLayout):
             target.add_widget(Label())
             target.add_widget(self.actual_push)
 
-
-
-
         except Exception as exception:
             self.showAlert(str(exception))
 
 
-    def extra_push(self, idnumber):
-        ref = overall.dbs.reference('special')
-        snapshot = ref.order_by_child('idnumber').equal_to(idnumber + "\uf8ff").get() or ref.order_by_child(
-            'idnumber').equal_to(idnumber.capitalize()).get()
-
-        if snapshot:
-            for key in snapshot.keys():
-                # Add the value to it (Update) Zodiac is Zodiac is
-                try:
-                    path = overall.dbs.reference("special").child(key)
-                    snapshot = path.get()
-
-                    if snapshot:
-                        overall.dbs.reference("specialhistory").push(snapshot)
-                    # Load the values and get all the data from it
-
-                    else:
-                        self.showAlert("Couldn't complete operation")
-
-
-                except Exception as exception:
-                    self.showAlert(str(exception))
-
+    def remove_stamp(self, stamp):
+        try:
+            if not stamp:
+                self.showAlert("Enter the stamp")
+            else:
+                ref = overall.dbs.reference('specialhistory')
+                snapshot = ref.order_by_child('stamp').equal_to(stamp + "\uf8ff").get() or ref.order_by_child('stamp').equal_to(stamp.capitalize()).get()
+                if snapshot:
+                    for key in snapshot.keys():
+                        overall.db.child('specialhistory').child(key).remove()
+                    self.showAlert("Operation was successful")
                 else:
-                    self.showAlert("Operation Complete")
-                    self.idinput_extras.text = ''
-
+                    self.showAlert("Error! Ensure you enter correct id or stamp")
+        except Exception as exception:
+            self.showAlert(str(exception))
         else:
-            self.showAlert("Error! Ensure you enter correct id")
+            pass
 
 
-    def push_new_entries(self, spiinner_items, quantity, idnumber):
 
-        theid = idnumber
-
-        if not theid or not quantity:
-            self.showAlert("Enter all fields")
-        else:
-
+    def remove_extras(self, idnumber):
+        try:
             ref = overall.dbs.reference('special')
-            snapshot = ref.order_by_child('idnumber').equal_to(theid + "\uf8ff").get() or ref.order_by_child(
-                'idnumber').equal_to(theid.capitalize()).get()
+            snapshot = ref.order_by_child('idnumber').equal_to(idnumber + "\uf8ff").get() or ref.order_by_child('idnumber').equal_to(idnumber.capitalize()).get()
+            if snapshot:
+                for key in snapshot.keys():
+                    overall.db.child('special').child(key).remove()
+                    self.showAlert("Operation was successful")
+                self.the_id_number.text = ''
+                self.idinput_extras.text = ''
+
+            else:
+                self.showAlert("Ensure you entered the correct id")
+        except Exception as exception:
+            self.showAlert(str(exception))
+        else:
+           pass
+
+
+
+    def extra_push(self, idnumber):
+        try:
+            ref = overall.dbs.reference('special')
+            snapshot = ref.order_by_child('idnumber').equal_to(idnumber + "\uf8ff").get() or ref.order_by_child(
+                'idnumber').equal_to(idnumber.capitalize()).get()
 
             if snapshot:
                 for key in snapshot.keys():
                     # Add the value to it (Update) Zodiac is Zodiac is
-                    datte = {}
-                    datte[spiinner_items] = quantity
-
                     try:
-                        overall.dbs.reference("special").child(key).update(datte)
+                        path = overall.dbs.reference("special").child(key)
+                        snapshot = path.get()
+
+                        if snapshot:
+                            overall.dbs.reference("specialhistory").push(snapshot)
+                            # Load the values and get all the data from it
+
+                            overall.db.child("special").child(key).remove()
+
+                        else:
+                            self.showAlert("Couldn't complete operation")
+
 
                     except Exception as exception:
                         self.showAlert(str(exception))
-                    else:
-                        self.showAlert("Operation was successful")
 
+                    else:
+                        self.showAlert("Operation Complete")
+                        self.idinput_extras.text = ''
 
             else:
                 self.showAlert("Error! Ensure you enter correct id")
+        except Exception as exception:
+            self.showAlert(str(exception))
+        else:
+            #self.showAlert("Operation was successful")
+            pass
 
-            self.quantity_extras.text = ''
-            self.idinput_extras.text = ''
+
+    def push_new_entries(self, spiinner_items, quantity, idnumber):
+        try:
+            theid = idnumber
+            thename = spiinner_items
+
+            if not theid or not quantity or not thename:
+                self.showAlert("Enter all fields")
+            else:
+
+                ref = overall.dbs.reference('special')
+                snapshot = ref.order_by_child('idnumber').equal_to(theid + "\uf8ff").get() or ref.order_by_child(
+                    'idnumber').equal_to(theid.capitalize()).get()
+
+                if snapshot:
+                    for key in snapshot.keys():
+                        # Add the value to it (Update) Zodiac is Zodiac is
+                        datte = {}
+                        datte[spiinner_items] = quantity
+
+                        try:
+                            overall.dbs.reference("special").child(key).update(datte)
+
+                            # Get the previous stock
+                            path = overall.db.child("mycharacter").child(thename).child("stock").get()
+                            first_Stock = float(path.val())
+
+                            new_Stock = first_Stock + float(quantity)
+
+                            # Save this to the database
+                            path = overall.db.child("mycharacter").child(thename).child("stock")
+                            path.set(str(new_Stock))
+
+
+                        except Exception as exception:
+                            self.showAlert(str(exception))
+                        else:
+                            self.showAlert("Operation was successful")
+
+
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
+
+                self.quantity_extras.text = ''
+                self.idinput_extras.text = ''
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+
 
 
     def add_new_extras(self,  numberplate, empty,  firstweight, secondweight, thirdweight, netweight, customername, idnumber):
@@ -382,6 +496,7 @@ class AdminWindow(BoxLayout):
             datte["Netweight"] = netweight
             datte["Customername"] = customername
             datte["idnumber"] = idnumber
+            datte["stamp"] = str(int(time.time()))
 
             try:
                 overall.db.child("special").push(datte)
@@ -399,37 +514,52 @@ class AdminWindow(BoxLayout):
 
 
     def push_departure_Goods(self, spinner_goods, quantity, idnumber):
+        try:
+            theid = idnumber
+            thename = spinner_goods
 
-        theid = idnumber
-
-        if not theid or not quantity:
-            self.showAlert("Enter all fields")
-        else:
-
-            ref = overall.dbs.reference('additions')
-            snapshot = ref.order_by_child('Didnumber').equal_to(theid + "\uf8ff").get() or ref.order_by_child(
-                'Didnumber').equal_to(theid.capitalize()).get()
-
-            if snapshot:
-                for key in snapshot.keys():
-                    #Add the value to it (Update) Zodiac is Zodiac is
-                    datte = {}
-                    datte[spinner_goods] = quantity
-
-                    try:
-                        overall.dbs.reference("additions").child(key).update(datte)
-
-                    except Exception as exception:
-                        self.showAlert(str(exception))
-                    else:
-                        self.showAlert("Operation was successful")
-
-
+            if not theid or not quantity or not spinner_goods:
+                self.showAlert("Enter all fields")
             else:
-                self.showAlert("Error! Ensure you enter correct id")
 
-            self.idinput.text = ''
-            self.quantity.text = ''
+                ref = overall.dbs.reference('additions')
+                snapshot = ref.order_by_child('Didnumber').equal_to(theid + "\uf8ff").get() or ref.order_by_child(
+                    'Didnumber').equal_to(theid.capitalize()).get()
+
+                if snapshot:
+                    for key in snapshot.keys():
+                        # Add the value to it (Update) Zodiac is Zodiac is
+                        datte = {}
+                        datte[spinner_goods] = quantity
+
+                        try:
+                            overall.dbs.reference("additions").child(key).update(datte)
+
+                            # Get the previous stock
+                            path = overall.db.child("mycharacter").child(thename).child("stock").get()
+                            first_Stock = float(path.val())
+
+                            new_Stock = first_Stock - float(quantity)
+
+                            # Save this to the database
+                            path = overall.db.child("mycharacter").child(thename).child("stock")
+                            path.set(str(new_Stock))
+
+                        except Exception as exception:
+                            self.showAlert(str(exception))
+                        else:
+                            self.showAlert("Operation was successful")
+
+
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
+
+                self.idinput.text = ''
+                self.quantity.text = ''
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+
 
 
 
@@ -446,7 +576,7 @@ class AdminWindow(BoxLayout):
                                             write_tab=False)
             self.total_sales_a = TextInput(hint_text='Total Sales', input_filter='float', multiline=False,
                                            write_tab=False)
-            self.idnumber_a = TextInput(hint_text='Id Number', input_filter='float', multiline=False, write_tab=False)
+            self.idnumber_a = TextInput(hint_text='Id Number or stamp', input_filter='float', multiline=False, write_tab=False)
 
             crud_submit = Button(text='Save Arrival Entry', on_release=lambda x: self.add_arrival_Entry(
                 # Add the date here
@@ -463,6 +593,9 @@ class AdminWindow(BoxLayout):
                     self.waste_a.text.strip())) * float(self.sellingprice_a.text.strip())),
                 self.idnumber_a.text.strip()))
 
+            crud_remove = Button(text='Remove Entry', on_release=lambda x: self.remove_complete_addition(
+                self.idnumber_a.text.strip()))
+
             target.add_widget(self.date_a)
             target.add_widget(self.full_a)
             target.add_widget(self.empty_a)
@@ -470,162 +603,247 @@ class AdminWindow(BoxLayout):
             target.add_widget(self.sellingprice_a)
             target.add_widget(self.idnumber_a)
             target.add_widget(crud_submit)
+            target.add_widget(crud_remove)
 
         except Exception as exception:
             self.showAlert(str(exception))
 
 
-    def add_arrival_Entry(self, arrival_date, arrival_full, arrival_empty, arrival_original_netweight, arrival_waste, arrival_new_net_weight, arrival_sellingprice, arrival_total_sales, arrival_idnumber):
 
-        if not arrival_date or not arrival_full or not arrival_empty or not arrival_original_netweight or not arrival_waste or not arrival_new_net_weight or not arrival_sellingprice or not arrival_total_sales or not arrival_idnumber:
-            self.showAlert("Enter all the fields")
-        else:
-            ref = overall.dbs.reference('additions')
-            snapshot = ref.order_by_child('Didnumber').equal_to(arrival_idnumber + "\uf8ff").get() or ref.order_by_child(
-                'Didnumber').equal_to(arrival_idnumber.capitalize()).get()
-
-            if snapshot:
-                for key in snapshot.keys():
-                    # Add the value to it (Update) Zodiac is Zodiac is
-                    datte = {}
-                    datte['A-Date'] = arrival_date
-                    datte['A-Full'] = str(arrival_full)
-                    datte['A-Empty'] = str(arrival_empty)
-                    datte['A-Origal-Weight'] = str(arrival_original_netweight)
-                    datte['A-Waste'] = str(arrival_waste)
-                    datte['A-Newweight'] = str(arrival_new_net_weight)
-                    datte['A-Sellingprice'] = arrival_sellingprice
-                    datte['A-Total-Sales'] = arrival_total_sales
-
-                    try:
-                        overall.dbs.reference("additions").child(key).update(datte)
-                        path = overall.dbs.reference("additions").child(key)
-                        snapshot = path.get()
-
-                        if snapshot:
-                            overall.dbs.reference("additionshistory").push(snapshot)
-                        #Load the values and get all the data from it
-
-
-                    except Exception as exception:
-                        self.showAlert(str(exception))
-
-                    else:
-                        self.date_a.text = ''
-                        self.empty_a.text = ''
-                        self.full_a.text = ''
-                        self.waste_a.text = ''
-                        self.sellingprice_a.text = ''
-                        self.idnumber_a.text = ''
-
+    def remove_complete_addition(self, stamp):
+        try:
+            if not stamp:
+                self.showAlert("Enter the stamp first")
             else:
-                self.showAlert("Error! Ensure you enter correct id")
+                ref = overall.dbs.reference('additionshistory')
+                snapshot = ref.order_by_child('stamp').equal_to(stamp + "\uf8ff").get() or ref.order_by_child('stamp').equal_to(stamp.capitalize()).get()
+                if snapshot:
+                    for key in snapshot.keys():
+                        remove_ref = overall.db.child('additionshistory').child(key)
+                        remove_ref.remove()
+                        self.showAlert("Operation was successful")
+
+                    self.idnumber_a.text = ''
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
+
+        except Exception as exception:
+            self.showAlert(str(exception))
+        else:
+            pass
+
+
+
+
+
+    def add_arrival_Entry(self, arrival_date, arrival_full, arrival_empty, arrival_original_netweight, arrival_waste, arrival_new_net_weight, arrival_sellingprice, arrival_total_sales, arrival_idnumber):
+        try:
+            if not arrival_date or not arrival_full or not arrival_empty or not arrival_original_netweight or not arrival_waste or not arrival_new_net_weight or not arrival_sellingprice or not arrival_total_sales or not arrival_idnumber:
+                self.showAlert("Enter all the fields")
+            else:
+                ref = overall.dbs.reference('additions')
+                snapshot = ref.order_by_child('Didnumber').equal_to(
+                    arrival_idnumber + "\uf8ff").get() or ref.order_by_child('Didnumber').equal_to(
+                    arrival_idnumber.capitalize()).get()
+
+                if snapshot:
+                    for key in snapshot.keys():
+                        # Add the value to it (Update) Zodiac is Zodiac is
+                        datte = {}
+                        datte['A-Date'] = arrival_date
+                        datte['A-Full'] = str(arrival_full)
+                        datte['A-Empty'] = str(arrival_empty)
+                        datte['A-Origal-Weight'] = str(arrival_original_netweight)
+                        datte['A-Waste'] = str(arrival_waste)
+                        datte['A-Newweight'] = str(arrival_new_net_weight)
+                        datte['A-Sellingprice'] = arrival_sellingprice
+                        datte['A-Total-Sales'] = arrival_total_sales
+                        datte['stamp'] = str(int(time.time()))
+
+                        try:
+                            overall.dbs.reference("additions").child(key).update(datte)
+                            path = overall.dbs.reference("additions").child(key)
+                            snapshot = path.get()
+
+                            if snapshot:
+                                overall.dbs.reference("additionshistory").push(snapshot)
+                            # Load the values and get all the data from it
+
+                            overall.db.child("additions").child(key).remove()
+
+
+                        except Exception as exception:
+                            self.showAlert(str(exception))
+
+                        else:
+                            self.showAlert("Operation was successful")
+                            self.date_a.text = ''
+                            self.empty_a.text = ''
+                            self.full_a.text = ''
+                            self.waste_a.text = ''
+                            self.sellingprice_a.text = ''
+                            self.idnumber_a.text = ''
+
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+
 
 
     def departure(self):
 
-        target = self.ids.addition_fields
-        target.clear_widgets()
+        try:
+            target = self.ids.addition_fields
+            target.clear_widgets()
 
-        self.empty_d = TextInput(hint_text='D.empty', multiline=False,write_tab=False)
-        self.full_d = TextInput(hint_text='D.full',  input_filter='float', multiline=False, write_tab=False)
-        self.company_d = TextInput(hint_text='Company',  multiline=False, write_tab=False)
-        self.location_d = TextInput(hint_text='Location', multiline=False, write_tab=False)
-        self.vehicle_d = TextInput(hint_text='Vehicle Number Plate ', multiline=False, write_tab=False)
-        self.buyingprice_d  = TextInput(hint_text='Buying Price', input_filter='float', multiline=False, write_tab=False)
-        self.idnumber_d = TextInput(hint_text='Id Number', input_filter='float', multiline=False, write_tab=False)
+            self.empty_d = TextInput(hint_text='D.empty', input_filter='float', multiline=False, write_tab=False)
+            self.full_d = TextInput(hint_text='D.full', input_filter='float', multiline=False, write_tab=False)
+            self.company_d = TextInput(hint_text='Company', multiline=False, write_tab=False)
+            self.location_d = TextInput(hint_text='Location', multiline=False, write_tab=False)
+            self.vehicle_d = TextInput(hint_text='Vehicle Number Plate ', multiline=False, write_tab=False)
+            self.buyingprice_d = TextInput(hint_text='Buying Price', input_filter='float', multiline=False,
+                                           write_tab=False)
+            self.idnumber_d = TextInput(hint_text='Id Number', input_filter='float', multiline=False, write_tab=False)
+
+            crud_submit = Button(text='Save Departure Entry', on_release=lambda x: self.add_departure_Entry(
+                overall.today.strip(),
+                self.empty_d.text.strip(),
+                self.full_d.text.strip(),
+                self.company_d.text.strip(),
+                self.location_d.text.strip(),
+                self.vehicle_d.text.strip(),
+                self.buyingprice_d.text.strip(),
+                self.idnumber_d.text.strip()))
+
+            self.empty_label_extras_d = Label()
+
+            path = overall.dbs.reference('mycharacter')
+            theshotsec = path.get()
+            subcategories = [value['name'] for value in theshotsec.values()]
+
+            self.spinner_goods = Spinner(text='Select Goods', values=subcategories)
+            self.quantity = TextInput(hint_text='Quantity', input_filter='float', multiline=False, write_tab=False)
+            self.idinput = TextInput(hint_text='Id Number', input_filter='float', multiline=False, write_tab=False)
+            self.crud_push_Button_d = Button(text='Register This Good', on_release=lambda x: self.push_departure_Goods(
+                self.spinner_goods.text.strip(),
+                self.quantity.text.strip(),
+                self.idinput.text.strip()
+            ))
+
+            self.remove_addition_d = Button(text='Remove Entry', on_release=lambda x: self.remove_addition_d_reality(
+                self.idinput.text.strip()
+            ))
+
+            target.add_widget(self.empty_d)
+            target.add_widget(self.full_d)
+            target.add_widget(self.company_d)
+            target.add_widget(self.location_d)
+            target.add_widget(self.vehicle_d)
+            target.add_widget(self.buyingprice_d)
+            target.add_widget(self.idnumber_d)
+            target.add_widget(crud_submit)
+            target.add_widget(self.empty_label_extras_d)
+            target.add_widget(self.remove_addition_d)
+
+            goods_target = BoxLayout(orientation='horizontal', height=35, spacing=20)
+            goods_target.clear_widgets()
+            goods_target.add_widget(self.spinner_goods)
+            goods_target.add_widget(self.quantity)
+            goods_target.add_widget(self.idinput)
+            goods_target.add_widget(self.crud_push_Button_d)
+
+            target.add_widget(goods_target)
+
+        except Exception as exception:
+            self.showAlert(str(exception))
 
 
-        crud_submit = Button(text='Save Departure Entry', on_release=lambda x: self.add_departure_Entry(
-                                 overall.today.strip(),
-                                 self.empty_d.text.strip(),
-                                 self.full_d.text.strip(),
-                                 self.company_d.text.strip(),
-                                 self.location_d.text.strip(),
-                                 self.vehicle_d.text.strip(),
-                                 self.buyingprice_d.text.strip(),
-                                 self.idnumber_d.text.strip()))
 
-        self.empty_label_extras_d = Label()
+    def remove_addition_d_reality(self, idinput):
+        try:
+            if not idinput:
+                self.showAlert("Enter the id number first")
+            else:
+                # Search if it is available or not
+                ref = overall.dbs.reference('additions')
+                snapshot = ref.order_by_child('Didnumber').equal_to(idinput + "\uf8ff").get() or ref.order_by_child(
+                    'Didnumber').equal_to(idinput.capitalize()).get()
+                if snapshot:
+                    for key in snapshot.keys():
+                        overall.db.child('additions').child(key).remove()
+                        self.showAlert("Operation was successful")
 
-        path = overall.dbs.reference('mycharacter')
-        theshotsec = path.get()
-        subcategories = [value['name'] for value in theshotsec.values()]
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
 
-        self.spinner_goods = Spinner(text='Select Goods', values = subcategories)
-        self.quantity = TextInput(hint_text='Quantity', input_filter='float', multiline=False,write_tab=False)
-        self.idinput = TextInput(hint_text='Id Number', input_filter='float', multiline=False,write_tab=False)
-        self.crud_push_Button_d = Button(text='Register This Good',on_release=lambda x: self.push_departure_Goods(
-            self.spinner_goods.text.strip(),
-            self.quantity.text.strip(),
-            self.idinput.text.strip()
-        ))
+                self.idnumber_d.text = ''
+                self.idinput.text = ''
 
-        target.add_widget(self.empty_d)
-        target.add_widget(self.full_d)
-        target.add_widget(self.company_d)
-        target.add_widget(self.location_d)
-        target.add_widget(self.vehicle_d)
-        target.add_widget(self.buyingprice_d)
-        target.add_widget(self.idnumber_d)
-        target.add_widget(crud_submit)
-        target.add_widget(self.empty_label_extras_d)
+        except Exception as exception:
+            self.showAlert(str(exception))
+        else:
+            pass
 
-        goods_target = BoxLayout(orientation = 'horizontal', height = 35, spacing = 20)
-        goods_target.clear_widgets()
-        goods_target.add_widget(self.spinner_goods)
-        goods_target.add_widget(self.quantity)
-        goods_target.add_widget(self.idinput)
-        goods_target.add_widget(self.crud_push_Button_d)
-
-        target.add_widget(goods_target)
 
 
     def add_departure_Entry(self, ddate, demptyweight, dfullweight, dcompany, dlocation, dvehicle, dbuyingprice, didnumber):
 
-        if not ddate or not demptyweight or not dfullweight or not dcompany or not dlocation or not dvehicle or not dbuyingprice or not didnumber:
-            self.showAlert("Enter all the fields")
-        else:
-
-            load = float(dfullweight) - float(demptyweight)
-
-            datte = {}
-            datte["date"] = ddate
-            datte["DEmpty"] = demptyweight
-            datte["DFull"] = dfullweight
-            datte["DLoad"] = str(load)
-            datte["Company"] = dcompany
-            datte["Location"] = dlocation
-            datte["Vehicle"] = dvehicle
-            datte["Dbuyingprice"] = dbuyingprice
-            datte["Didnumber"] = didnumber
-            datte["DTotalPurchases"] = (load * float (dbuyingprice))
-
-            try:
-                overall.db.child("additions").push(datte)
-            except Exception as exception:
-                self.showAlert(str(exception))
+        try:
+            if not ddate or not demptyweight or not dfullweight or not dcompany or not dlocation or not dvehicle or not dbuyingprice or not didnumber:
+                self.showAlert("Enter all the fields")
             else:
-                self.showAlert("Operation was successful")
+
+                load = float(dfullweight) - float(demptyweight)
+
+                datte = {}
+                datte["date"] = ddate
+                datte["DEmpty"] = demptyweight
+                datte["DFull"] = dfullweight
+                datte["DLoad"] = str(load)
+                datte["Company"] = dcompany
+                datte["Location"] = dlocation
+                datte["Vehicle"] = dvehicle
+                datte["Dbuyingprice"] = dbuyingprice
+                datte["Didnumber"] = didnumber
+                datte["DTotalPurchases"] = (load * float(dbuyingprice))
+
+                try:
+                    overall.db.child("additions").push(datte)
+                except Exception as exception:
+                    self.showAlert(str(exception))
+                else:
+                    self.showAlert("Operation was successful")
+
+                self.empty_d.text = ''
+                self.full_d.text = ''
+                self.company_d.text = ''
+                self.location_d.text = ''
+                self.vehicle_d.text = ''
+                self.buyingprice_d.text = ''
+                self.idnumber_d.text = ''
+
+        except Exception as exception:
+            self.showAlert(str(exception))
 
 
-            self.empty_d.text = ''
-            self.full_d.text = ''
-            self.company_d.text = ''
-            self.location_d.text = ''
-            self.vehicle_d.text = ''
-            self.buyingprice_d.text = ''
-            self.idnumber_d.text = ''
 
 
     def validate_Item(self, name):
-        path = overall.dbs.reference("products")
-        snapshot = path.order_by_child('name').get()
 
-        names = [value['name'] for value in snapshot.values()]
-        if name in names:
-            self.showAlert("Name already exists\nUse a different name")
-            pass
+        try:
+            path = overall.dbs.reference("products")
+            snapshot = path.order_by_child('name').get()
+
+            names = [value['name'] for value in snapshot.values()]
+            if name in names:
+                self.showAlert("Name already exists\nUse a different name")
+                pass
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+
 
 
     def load_negative_money(self):
@@ -865,22 +1083,31 @@ class AdminWindow(BoxLayout):
 
 
     def add_edit_inventory_fields(self):
+        
+        try:
             target = self.ids.ops_fields_pfinal
             target.clear_widgets()
 
-            self.studpidbuyingprice = TextInput(hint_text='Selling Price', input_filter = 'float', multiline=False, write_tab=False)
-            self.stupidsellingprice = TextInput(hint_text='Buying Price', input_filter = 'float',  multiline=False, write_tab=False)
+            self.studpidbuyingprice = TextInput(hint_text='Selling Price', input_filter='float', multiline=False,
+                                                write_tab=False)
+            self.stupidsellingprice = TextInput(hint_text='Buying Price', input_filter='float', multiline=False,
+                                                write_tab=False)
             self.stupidproductcode = TextInput(hint_text='Prod code', multiline=False, write_tab=False)
 
             crud_submit = Button(text='Edit SubCat', size_hint_x=None, width=100,
-                                 on_release=lambda x: self.add_edit_inventory_fields_real(self.studpidbuyingprice.text.strip(),
-                                                                                    self.stupidsellingprice.text.strip(),
-                                                                                          self.stupidproductcode.text.strip()))
+                                 on_release=lambda x: self.add_edit_inventory_fields_real(
+                                     self.studpidbuyingprice.text.strip(),
+                                     self.stupidsellingprice.text.strip(),
+                                     self.stupidproductcode.text.strip()))
 
             target.add_widget(self.studpidbuyingprice)
             target.add_widget(self.stupidsellingprice)
             target.add_widget(self.stupidproductcode)
             target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
+
+
 
 
     def add_edit_inventory_fields_real(self, sellingprice, buyingprice, thecode):
@@ -896,49 +1123,69 @@ class AdminWindow(BoxLayout):
                 Clock.schedule_once(self.killswitch, 5)
             else:
 
-                overall.dbs.reference("mycharacter").child(thecode).update(datte)
+                #Check if this code exists in the children before editing it
+                ref = overall.dbs.reference('mycharacter')
+                snapshot = ref.order_by_child('code').equal_to(thecode + "\uf8ff").get() or ref.order_by_child('code').equal_to(thecode.capitalize()).get()
+                if snapshot:
+                    for key in snapshot.keys():
 
-                self.studpidbuyingprice.text = ''
-                self.stupidsellingprice.text = ''
-                self.stupidproductcode.text = ''
+                        overall.dbs.reference("mycharacter").child(key).update(datte)
+
+                    self.studpidbuyingprice.text = ''
+                    self.stupidsellingprice.text = ''
+                    self.stupidproductcode.text = ''
+
+                    self.showAlert("Operation was successful")
+
+                else:
+                    self.showAlert("Error! Ensure you enter correct id")
 
         except Exception as exception:
               self.showAlert(str(exception))
         else:
-            self.showAlert("Operation was successful")
+            #self.showAlert("Operation was successful")
+            pass
 
 
     def add_product_sub_category_fields(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
 
-        path = overall.dbs.reference('categorylist')
-        theshotsec = path.get()
-        maincategories = [value['name'] for value in theshotsec.values()]
+        try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
 
-        self.studpidbuyingprice = TextInput(hint_text='Buying Price', input_filter = 'float',  multiline=False, write_tab=False)
-        self.stupidsellingprice = TextInput(hint_text='Selling Price', input_filter = 'float', multiline=False, write_tab=False)
-        self.stupidcode = TextInput(hint_text='Product Code', multiline=False, write_tab=False)
-        self.stupidname = TextInput(hint_text='Category Name', multiline=False, write_tab=False)
-        self.stupidmaincategory = Spinner(text='Main Cat',  values = maincategories)
-        self.stupidstock = "0.0"
-        self.stupidavialabilitiy = 'Available'
+            path = overall.dbs.reference('categorylist')
+            theshotsec = path.get()
+            maincategories = [value['name'] for value in theshotsec.values()]
 
+            self.studpidbuyingprice = TextInput(hint_text='Buying Price', input_filter='float', multiline=False,
+                                                write_tab=False)
+            self.stupidsellingprice = TextInput(hint_text='Selling Price', input_filter='float', multiline=False,
+                                                write_tab=False)
+            self.stupidcode = TextInput(hint_text='Product Code', multiline=False, write_tab=False)
+            self.stupidname = TextInput(hint_text='Category Name', multiline=False, write_tab=False)
+            self.stupidmaincategory = Spinner(text='Main Cat', values=maincategories)
+            self.stupidstock = "0.0"
+            self.stupidavialabilitiy = 'Available'
 
-        crud_submit = Button(text='Add Sub', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_product_sub_category(self.studpidbuyingprice.text.strip(), self.stupidsellingprice.text.strip(),
-                                                                            self.stupidcode.text.strip(),
-                                                                            self.stupidname.text.strip(),
-                                                                            self.stupidmaincategory.text.strip(),
-                                                                            self.stupidstock,
-                                                                            self.stupidavialabilitiy, ))
+            crud_submit = Button(text='Add Sub', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_product_sub_category(
+                                     self.studpidbuyingprice.text.strip(), self.stupidsellingprice.text.strip(),
+                                     self.stupidcode.text.strip(),
+                                     self.stupidname.text.strip(),
+                                     self.stupidmaincategory.text.strip(),
+                                     self.stupidstock,
+                                     self.stupidavialabilitiy, ))
 
-        target.add_widget(self.studpidbuyingprice)
-        target.add_widget(self.stupidsellingprice)
-        #target.add_widget(self.stupidcode)
-        target.add_widget(self.stupidname)
-        target.add_widget(self.stupidmaincategory)
-        target.add_widget(crud_submit)
+            target.add_widget(self.studpidbuyingprice)
+            target.add_widget(self.stupidsellingprice)
+            # target.add_widget(self.stupidcode)
+            target.add_widget(self.stupidname)
+            target.add_widget(self.stupidmaincategory)
+            target.add_widget(crud_submit)
+
+        except Exception as exception:
+            self.showAlert(str(exception))
+
 
 
 
@@ -1276,97 +1523,100 @@ class AdminWindow(BoxLayout):
             self.showAlert(str(exception))
 
     def client_Search(self):
-        identity_of_client = self.ids.looking_for_client.text.strip()
-        if identity_of_client:
-            #Search for this client
-            try:
+        try:
+            identity_of_client = self.ids.looking_for_client.text.strip()
+            if identity_of_client:
+                #Search for this client
+                try:
 
-                path = overall.dbs.reference("history")
-                theshot = path.order_by_child('idnumber').equal_to(identity_of_client).get()
-                snapshot = theshot
+                    path = overall.dbs.reference("history")
+                    theshot = path.order_by_child('idnumber').equal_to(identity_of_client).get()
+                    snapshot = theshot
 
-                if snapshot:
-                    date = []
-                    name = []
-                    amount = []
-                    idnumber = []
-                    mode = []
-                    bank = []
-                    description = []
-                    previous = []
+                    if snapshot:
+                        date = []
+                        name = []
+                        amount = []
+                        idnumber = []
+                        mode = []
+                        bank = []
+                        description = []
+                        previous = []
 
-                    for transaction in snapshot.values():
-                        retrieve_date = transaction['date']
-                        date.append(retrieve_date)
+                        for transaction in snapshot.values():
+                            retrieve_date = transaction['date']
+                            date.append(retrieve_date)
 
-                        retrieve_name = transaction['name']
-                        name.append(retrieve_name)
+                            retrieve_name = transaction['name']
+                            name.append(retrieve_name)
 
-                        retrieve_amount = transaction['amount']
-                        amount.append(retrieve_amount)
+                            retrieve_amount = transaction['amount']
+                            amount.append(retrieve_amount)
 
-                        retrieve_idnumber = transaction['idnumber']
-                        idnumber.append(retrieve_idnumber)
+                            retrieve_idnumber = transaction['idnumber']
+                            idnumber.append(retrieve_idnumber)
 
-                        retrieve_mode = transaction['mode']
-                        mode.append(retrieve_mode)
+                            retrieve_mode = transaction['mode']
+                            mode.append(retrieve_mode)
 
-                        retrieve_bank = transaction['bank']
-                        bank.append(retrieve_bank)
+                            retrieve_bank = transaction['bank']
+                            bank.append(retrieve_bank)
 
-                        retrieve_description = transaction['description']
-                        description.append(retrieve_description)
+                            retrieve_description = transaction['description']
+                            description.append(retrieve_description)
 
-                        retrieve_previoius = transaction['previous']
-                        previous.append(retrieve_previoius)
+                            retrieve_previoius = transaction['previous']
+                            previous.append(retrieve_previoius)
 
-                    transaction = dict()
-                    transaction['Date'] = {}
-                    transaction['Name'] = {}
-                    transaction['Amount'] = {}
-                    transaction['IdNumber'] = {}
-                    transaction['Mode'] = {}
-                    transaction['Bank'] = {}
-                    transaction['Description'] = {}
-                    transaction['Previous'] = {}
+                        transaction = dict()
+                        transaction['Date'] = {}
+                        transaction['Name'] = {}
+                        transaction['Amount'] = {}
+                        transaction['IdNumber'] = {}
+                        transaction['Mode'] = {}
+                        transaction['Bank'] = {}
+                        transaction['Description'] = {}
+                        transaction['Previous'] = {}
 
-                    users_length = len(date)
-                    idx = 0
-                    while idx < users_length:
-                        transaction['Date'][idx] = date[idx]
-                        transaction['Name'][idx] = name[idx]
-                        transaction['Amount'][idx] = amount[idx]
-                        transaction['IdNumber'][idx] = idnumber[idx]
-                        transaction['Mode'][idx] = mode[idx]
-                        transaction['Bank'][idx] = bank[idx]
-                        transaction['Description'][idx] = description[idx]
-                        transaction['Previous'][idx] = previous[idx]
+                        users_length = len(date)
+                        idx = 0
+                        while idx < users_length:
+                            transaction['Date'][idx] = date[idx]
+                            transaction['Name'][idx] = name[idx]
+                            transaction['Amount'][idx] = amount[idx]
+                            transaction['IdNumber'][idx] = idnumber[idx]
+                            transaction['Mode'][idx] = mode[idx]
+                            transaction['Bank'][idx] = bank[idx]
+                            transaction['Description'][idx] = description[idx]
+                            transaction['Previous'][idx] = previous[idx]
 
-                        idx += 1
+                            idx += 1
 
-                    transactioncontents = self.ids.scrn_display_all_client_statuses
-                    transactioncontents.clear_widgets()
-                    thetransaction = transaction
-                    transactiontable = DataTable(thetransaction)
-                    transactioncontents.add_widget(transactiontable)
+                        transactioncontents = self.ids.scrn_display_all_client_statuses
+                        transactioncontents.clear_widgets()
+                        thetransaction = transaction
+                        transactiontable = DataTable(thetransaction)
+                        transactioncontents.add_widget(transactiontable)
 
-                    self.active = transaction
+                        self.active = transaction
 
-                    self.ids.looking_for_client.text = ''
+                        self.ids.looking_for_client.text = ''
 
+                    else:
+                        self.showAlert("No such client")
+                        self.ids.looking_for_client.text = ''
+                except Exception as exception:
+                    self.showAlert(str(exception))
                 else:
-                    self.showAlert("No such client")
-                    self.ids.looking_for_client.text = ''
-            except Exception as exception:
-                self.showAlert(str(exception))
-            else:
-               #self.showAlert("Operation was successful")
-                pass
+                   #self.showAlert("Operation was successful")
+                    pass
 
-        else:
-            self.showAlert("Enter Client Id first")
-            self.displayall_active_standalone_clients()
-            self.ids.looking_for_client.text = ''
+            else:
+                self.showAlert("Enter Client Id first")
+                self.displayall_active_standalone_clients()
+                self.ids.looking_for_client.text = ''
+        except Exception as exception:
+            self.showAlert(str(exception))
 
 
     def displayall_active_standalone_clients(self):
@@ -1434,28 +1684,31 @@ class AdminWindow(BoxLayout):
 
 
     def add_money_fields(self):
-        target = self.ids.ops_fields_standalone
-        target.clear_widgets()
-        self.hereamount = TextInput(hint_text='Amount', input_filter = 'float', multiline=False, write_tab=False)
-        self.hereidnumber = TextInput(hint_text='Id No', input_filter = 'float', multiline=False, write_tab=False)
-        self.herename = TextInput(hint_text='C.Name', multiline=False, write_tab=False)
-        self.bank = TextInput(hint_text='Bank', multiline=False, write_tab=False)
-        # Load the values from the database
-        self.here_category = Spinner(text='Transaction', values=('Out', 'In'))
-        crud_submit = Button(text='Record', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_money_entry(self.hereamount.text.strip(),
-                                                                       self.hereidnumber.text.strip(),
-                                                                       self.herename.text.strip(),
-                                                                       self.here_category.text.strip(),
-                                                                       self.bank.text.strip()))
+       try:
+            target = self.ids.ops_fields_standalone
+            target.clear_widgets()
+            self.hereamount = TextInput(hint_text='Amount', input_filter = 'float', multiline=False, write_tab=False)
+            self.hereidnumber = TextInput(hint_text='Id No', input_filter = 'float', multiline=False, write_tab=False)
+            self.herename = TextInput(hint_text='C.Name', multiline=False, write_tab=False)
+            self.bank = TextInput(hint_text='Bank', multiline=False, write_tab=False)
+            # Load the values from the database
+            self.here_category = Spinner(text='Transaction', values=('Out', 'In'))
+            crud_submit = Button(text='Record', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_money_entry(self.hereamount.text.strip(),
+                                                                           self.hereidnumber.text.strip(),
+                                                                           self.herename.text.strip(),
+                                                                           self.here_category.text.strip(),
+                                                                           self.bank.text.strip()))
 
-        target.add_widget(self.hereamount)
-        target.add_widget(self.hereidnumber)
-        target.add_widget(self.herename)
-        target.add_widget(self.bank)
-        target.add_widget(self.here_category)
-        target.add_widget(crud_submit)
+            target.add_widget(self.hereamount)
+            target.add_widget(self.hereidnumber)
+            target.add_widget(self.herename)
+            target.add_widget(self.bank)
+            target.add_widget(self.here_category)
+            target.add_widget(crud_submit)
 
+       except Exception as exception:
+           self.showAlert(str(exception))
 
 
     def add_money_entry(self, hereamount, hereidnumber, herename, herecategory, bankname):
@@ -1589,20 +1842,23 @@ class AdminWindow(BoxLayout):
 
 
     def fetchInvoice(self):
-        target = self.ids.ops_fields_invoice
-        target.clear_widgets()
+        try:
+            target = self.ids.ops_fields_invoice
+            target.clear_widgets()
 
-        self.uclientcode = TextInput(hint_text='clientcode', multiline=False, write_tab=False)
-        self.ucompanyname = TextInput(hint_text='TO: Name', multiline=False, write_tab=False)
-        self.ucompanymobile = TextInput(hint_text='TO: Mobile', input_filter = 'float', multiline=False, write_tab=False)
-        crud_submit = Button(text='Print Invoice', size_hint_x=None, width=100,
-                             on_release=lambda x: self.actualInvoice(self.ucompanyname.text.strip(), self.ucompanymobile.text.strip(),
-                                                                     self.uclientcode.text.strip()))
+            self.uclientcode = TextInput(hint_text='clientcode', multiline=False, write_tab=False)
+            self.ucompanyname = TextInput(hint_text='TO: Name', multiline=False, write_tab=False)
+            self.ucompanymobile = TextInput(hint_text='TO: Mobile', input_filter = 'float', multiline=False, write_tab=False)
+            crud_submit = Button(text='Print Invoice', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.actualInvoice(self.ucompanyname.text.strip(), self.ucompanymobile.text.strip(),
+                                                                         self.uclientcode.text.strip()))
 
-        #target.add_widget(self.uclientcode)
-        target.add_widget(self.ucompanyname)
-        target.add_widget(self.ucompanymobile)
-        target.add_widget(crud_submit)
+            #target.add_widget(self.uclientcode)
+            target.add_widget(self.ucompanyname)
+            target.add_widget(self.ucompanymobile)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def actualInvoice(self, mcompanyname, mcompanymobile, mclientcode):
         try:
@@ -1796,14 +2052,17 @@ class AdminWindow(BoxLayout):
 
 
     def remove_branch_fields(self):
-        target = self.ids.ops_fields_branches
-        target.clear_widgets()
-        self.brachnamed = TextInput(hint_text='Brach Name')
-        crud_submit = Button(text='Remove', size_hint_x=None, width=100,
-                             on_release=lambda x: self.remove_branch(self.brachnamed.text.strip()))
+        try:
+            target = self.ids.ops_fields_branches
+            target.clear_widgets()
+            self.brachnamed = TextInput(hint_text='Brach Name')
+            crud_submit = Button(text='Remove', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.remove_branch(self.brachnamed.text.strip()))
 
-        target.add_widget(self.brachnamed)
-        target.add_widget(crud_submit)
+            target.add_widget(self.brachnamed)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def remove_branch(self, branch):
         try:
@@ -1835,15 +2094,18 @@ class AdminWindow(BoxLayout):
 
 
     def add_branch_fields(self):
-        target = self.ids.ops_fields_branches
-        target.clear_widgets()
+        try:
+            target = self.ids.ops_fields_branches
+            target.clear_widgets()
 
-        self.branchname = TextInput(hint_text='Branch Name', multiline=False, write_tab=False)
-        crud_submit = Button(text='Add', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_branch(self.branchname.text.strip()))
+            self.branchname = TextInput(hint_text='Branch Name', multiline=False, write_tab=False)
+            crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_branch(self.branchname.text.strip()))
 
-        target.add_widget(self.branchname)
-        target.add_widget(crud_submit)
+            target.add_widget(self.branchname)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def add_branch(self, bothnames):
         try:
@@ -1904,7 +2166,7 @@ class AdminWindow(BoxLayout):
                     companyName = companyName + "\n\nSale Receipt\n\nOpp Golden Life Mall\nP.O BOX 0000\nTEL:0727441192\nEMAIL: cocabtechsolutions@gmail.com"
                     receiptNo = randint(1, 100000)
                     finalString = companyName + "\n\nReceipt No:" + str(receiptNo) + "\n\n" + products \
-                                  + "\n____________________________\n" + "Total Due:        " + amount + "\n_____________________________\n\n" + "Paid In:     " + paytype + "\n\n" + "Served By:     " + served + "\n" + "Payment:           " + customerpay + "\nBalance:            " + balance + "\n\n\nWelcome Back"
+                                  + "\n________________________________\n" + "Total Due:        " + amount + "\n________________________________\n\n" + "Paid In:     " + paytype + "\n\n" + "Served By:     " + served + "\n" + "Payment:           " + customerpay + "\nBalance:            " + balance + "\n\n\nWelcome Back"
 
                     # printdata =bytes([29, 76, 205, 0, 29, 97, 169,7])+ b'\x1dL#\x00\x1dW\xa9\x01' + finalString.encode('utf-8')
 
@@ -1935,11 +2197,14 @@ class AdminWindow(BoxLayout):
 
 
     def refresh_branches(self):
-        content = self.ids.scrn_branches
-        content.clear_widgets()
-        branches = self.get_branches()
-        branchestable = DataTable(table=branches)
-        content.add_widget(branchestable)
+        try:
+            content = self.ids.scrn_branches
+            content.clear_widgets()
+            branches = self.get_branches()
+            branchestable = DataTable(table=branches)
+            content.add_widget(branchestable)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def loadEverything(self):
 
@@ -2549,18 +2814,21 @@ class AdminWindow(BoxLayout):
         self.parent.parent.current = 'scrn_login'
 
     def search_Field(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
-        self.crud_search_word = TextInput(hint_text='Enter Product Code or Product name')
-        # Load the values from the database
-        crud_search_criteria = Spinner(text='code', values=['code', 'name'])
-        crud_submit = Button(text='Search', size_hint_x=None, width=100,
-                             on_release=lambda x: self.dotheSearch(self.crud_search_word.text.strip(),
-                                                                   crud_search_criteria.text.strip()))
+        try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
+            self.crud_search_word = TextInput(hint_text='Enter Product Code or Product name')
+            # Load the values from the database
+            crud_search_criteria = Spinner(text='code', values=['code', 'name'])
+            crud_submit = Button(text='Search', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.dotheSearch(self.crud_search_word.text.strip(),
+                                                                       crud_search_criteria.text.strip()))
 
-        target.add_widget(self.crud_search_word)
-        target.add_widget(crud_search_criteria)
-        target.add_widget(crud_submit)
+            target.add_widget(self.crud_search_word)
+            target.add_widget(crud_search_criteria)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def dotheSearch(self, searchWord, searchCriteria):
 
@@ -2646,22 +2914,25 @@ class AdminWindow(BoxLayout):
 
 
     def view_categories(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
+       try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
 
-        ref = overall.dbs.reference('categorylist')
-        snapshot = ref.order_by_child('name').get()
-        name = [value['name'] for value in snapshot.values()]
-        newList = name
+            ref = overall.dbs.reference('categorylist')
+            snapshot = ref.order_by_child('name').get()
+            name = [value['name'] for value in snapshot.values()]
+            newList = name
 
-        # Load the values from the database
-        crud_category = Spinner(text='Select', values=newList)
-        crud_submit = Button(text='View', size_hint_x=None, width=100,
-                             on_release=lambda x: self.show_product_in_chosen_categories(crud_category.text.strip()))
+            # Load the values from the database
+            crud_category = Spinner(text='Select', values=newList)
+            crud_submit = Button(text='View', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.show_product_in_chosen_categories(crud_category.text.strip()))
 
-        target.add_widget(crud_category)
-        target.add_widget(crud_submit)
+            target.add_widget(crud_category)
+            target.add_widget(crud_submit)
 
+       except Exception as exception:
+           self.showAlert(str(exception))
     def show_product_in_chosen_categories(self, crud_category):
 
         try:
@@ -2710,14 +2981,17 @@ class AdminWindow(BoxLayout):
 
 
     def remove_product_fields(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
-        self.crud_code = TextInput(hint_text='Product Code')
-        crud_submit = Button(text='Remove', size_hint_x=None, width=100,
-                             on_release=lambda x: self.remove_product(self.crud_code.text.strip()))
+       try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
+            self.crud_code = TextInput(hint_text='Product Code')
+            crud_submit = Button(text='Remove', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.remove_product(self.crud_code.text.strip()))
 
-        target.add_widget(self.crud_code)
-        target.add_widget(crud_submit)
+            target.add_widget(self.crud_code)
+            target.add_widget(crud_submit)
+       except Exception as exception:
+           self.showAlert(str(exception))
 
     def remove_product(self, code):
         try:
@@ -2732,6 +3006,13 @@ class AdminWindow(BoxLayout):
                 if snapshot:
                     for key in snapshot.keys():
                         try:
+
+                            #Get the subcategory from the product
+                            subcategory = overall.db.child("products").child(key).child("subcategory").get().val()
+                            toremove = float(overall.db.child("products").child(key).child("stock").get().val())
+                            currentstck = float(overall.db.child("mycharacter").child(subcategory).child("stock").get().val())
+                            newStock = str(currentstck - toremove)
+                            overall.db.child("mycharacter").child(subcategory).child("stock").set(newStock)
                             overall.db.child("products").child(key).remove()
 
                         except Exception as exception:
@@ -2752,41 +3033,47 @@ class AdminWindow(BoxLayout):
 
 
     def update_product_fields(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
+        try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
 
-        crud_code = TextInput(hint_text='Product Code(Id No.)', multiline=False, write_tab=False)
-        crud_name = TextInput(hint_text='Product Name', multiline=False, write_tab=False)
-        crud_buyingprice = TextInput(hint_text='Buying Price', input_filter = 'float', multiline=False, write_tab=False)
-        crud_selling_price = TextInput(hint_text='Selling Price',  input_filter = 'float', multiline=False, write_tab=False)
+            crud_code = TextInput(hint_text='Product Code(Id No.)', multiline=False, write_tab=False)
+            crud_name = TextInput(hint_text='Product Name', multiline=False, write_tab=False)
+            crud_buyingprice = TextInput(hint_text='Buying Price', input_filter = 'float', multiline=False, write_tab=False)
+            crud_selling_price = TextInput(hint_text='Selling Price',  input_filter = 'float', multiline=False, write_tab=False)
 
-        prods = self.db.child("MainPos").child("categorylist").get().val()
-        # Load the values from the database
-        crud_category = Spinner(text='Prod Category', values=prods.values())
-        crud_submit = Button(text='Add', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_product(crud_code.text.strip(),
-                                                                   crud_name.text.strip(),
-                                                                   crud_buyingprice.text.strip(),
-                                                                   crud_selling_price.text.strip(),
-                                                                   crud_category.text.strip()))
+            prods = self.db.child("MainPos").child("categorylist").get().val()
+            # Load the values from the database
+            crud_category = Spinner(text='Prod Category', values=prods.values())
+            crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_product(crud_code.text.strip(),
+                                                                       crud_name.text.strip(),
+                                                                       crud_buyingprice.text.strip(),
+                                                                       crud_selling_price.text.strip(),
+                                                                       crud_category.text.strip()))
 
-        target.add_widget(crud_code)
-        target.add_widget(crud_name)
-        target.add_widget(crud_buyingprice)
-        target.add_widget(crud_selling_price)
-        target.add_widget(crud_category)
-        target.add_widget(crud_submit)
+            target.add_widget(crud_code)
+            target.add_widget(crud_name)
+            target.add_widget(crud_buyingprice)
+            target.add_widget(crud_selling_price)
+            target.add_widget(crud_category)
+            target.add_widget(crud_submit)
 
+        except Exception as exception:
+            self.showAlert(str(exception))
     def add_product_category_field(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
+        try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
 
-        self.categoryName = TextInput(hint_text='Name of the category', multiline=False, write_tab=False)
-        crud_submit = Button(text='Add Category', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_product_category(self.categoryName.text.strip()))
+            self.categoryName = TextInput(hint_text='Name of the category', multiline=False, write_tab=False)
+            crud_submit = Button(text='Add Category', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_product_category(self.categoryName.text.strip()))
 
-        target.add_widget(self.categoryName)
-        target.add_widget(crud_submit)
+            target.add_widget(self.categoryName)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def add_product_category(self, categoryName):
 
@@ -2879,6 +3166,11 @@ class AdminWindow(BoxLayout):
                 target.clear_widgets()
                 self.ids.scrn_mngr.current = 'scrn_branches'
 
+            elif instance.text == 'Expenses':
+                target = self.ids.ops_fields_p
+                target.clear_widgets()
+                self.ids.scrn_mngr.current = 'scrn_branches'
+
             elif instance.text == 'Refresh':
                 try:
                     self.loadEverythingSec()
@@ -2886,7 +3178,6 @@ class AdminWindow(BoxLayout):
                     self.showAlert(str(exception))
                 else:
                     self.showAlert('Refresh Complete')
-
 
             elif instance.text == 'StandAlone':
                 target = self.ids.ops_fields_p
@@ -2901,44 +3192,46 @@ class AdminWindow(BoxLayout):
 
 
     def add_product_fields(self):
-        target = self.ids.ops_fields_p
-        target.clear_widgets()
+       try:
+            target = self.ids.ops_fields_p
+            target.clear_widgets()
 
-        self.crud_code = TextInput(hint_text='DT830', multiline=False, write_tab=False)
-        self.crud_name = TextInput(hint_text='Jane-456', multiline=False, write_tab=False)
-        self.crud_buyingprice = TextInput(hint_text='Buying Price', input_filter = 'float', multiline=False, write_tab=False)
-        self.crud_selling_price = TextInput(hint_text='Selling Price',  input_filter = 'float', multiline=False, write_tab=False)
-        self.crud_kilograms = TextInput(hint_text='Kgs', input_filter = 'float', multiline=False, write_tab=False)
+            self.crud_code = TextInput(hint_text='DT830', multiline=False, write_tab=False)
+            self.crud_name = TextInput(hint_text='Jane-456', multiline=False, write_tab=False)
+            self.crud_buyingprice = TextInput(hint_text='Buying Price', input_filter = 'float', multiline=False, write_tab=False)
+            self.crud_selling_price = TextInput(hint_text='Selling Price',  input_filter = 'float', multiline=False, write_tab=False)
+            self.crud_kilograms = TextInput(hint_text='Kgs', input_filter = 'float', multiline=False, write_tab=False)
 
-        path = overall.dbs.reference('mycharacter')
-        theshot = path.get()
-        subcategories = [value['name'] for value in theshot.values()]
+            path = overall.dbs.reference('mycharacter')
+            theshot = path.get()
+            subcategories = [value['name'] for value in theshot.values()]
 
-        path = overall.dbs.reference('categorylist')
-        theshotsec = path.get()
-        maincategories = [value['name'] for value in theshotsec.values()]
+            path = overall.dbs.reference('categorylist')
+            theshotsec = path.get()
+            maincategories = [value['name'] for value in theshotsec.values()]
 
-        # Load the values from the database
-        sub_category = Spinner(text='Sub Cat', values=subcategories)
-        self.crud_category = Spinner(text='Main Cat', values=maincategories)
-        crud_submit = Button(text='Add', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_product(self.crud_code.text.strip(), self.crud_name.text.strip(),
-                                                                   self.crud_buyingprice.text.strip(),
-                                                                   self.crud_selling_price.text.strip(),
-                                                                   sub_category.text.strip(),
-                                                                   self.crud_category.text.strip(),
-                                                                   self.crud_kilograms.text.strip()))
+            # Load the values from the database
+            sub_category = Spinner(text='Sub Cat', values=subcategories)
+            self.crud_category = Spinner(text='Main Cat', values=maincategories)
+            crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_product(str(int(time.time())), self.crud_name.text.strip(),
+                                                                       self.crud_buyingprice.text.strip(),
+                                                                       self.crud_selling_price.text.strip(),
+                                                                       sub_category.text.strip(),
+                                                                       self.crud_category.text.strip(),
+                                                                       self.crud_kilograms.text.strip()))
 
-        target.add_widget(self.crud_code)
-        target.add_widget(self.crud_name)
-        #target.add_widget(self.crud_buyingprice)
-        #target.add_widget(self.crud_selling_price)
-        target.add_widget(self.crud_kilograms)
+            target.add_widget(self.crud_name)
+            #target.add_widget(self.crud_buyingprice)
+            #target.add_widget(self.crud_selling_price)
+            target.add_widget(self.crud_kilograms)
 
-        target.add_widget(sub_category)
-        target.add_widget(self.crud_category)
-        target.add_widget(crud_submit)
+            target.add_widget(sub_category)
+            target.add_widget(self.crud_category)
+            target.add_widget(crud_submit)
 
+       except Exception as exception:
+           self.showAlert(str(exception))
 
 
     def add_product(self, code, name, buyingprice, sellingprice, sub_category, category, kilograms):
@@ -3033,19 +3326,25 @@ class AdminWindow(BoxLayout):
             self.showAlert(str(error))
 
     def remove_user_fields(self):
-        target = self.ids.ops_fields
-        target.clear_widgets()
-        self.user = TextInput(hint_text='Id Number', input_filter = 'float', multiline = False, write_tab = False)
-        crud_submit = Button(text='Remove', size_hint_x=None, width=100,
-                             on_release=lambda x: self.remove_user(self.user.text.strip()))
+        try:
+            target = self.ids.ops_fields
+            target.clear_widgets()
+            self.user = TextInput(hint_text='Id Number', input_filter = 'float', multiline = False, write_tab = False)
+            crud_submit = Button(text='Remove', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.remove_user(self.user.text.strip()))
 
-        target.add_widget(self.user)
-        target.add_widget(crud_submit)
+            target.add_widget(self.user)
+            target.add_widget(crud_submit)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def showAlert(self, message):
-        self.notify.add_widget(Label(text='[color=#FF0000][b]' + message + '[/b][/color]', markup=True))
-        self.notify.open()
-        Clock.schedule_once(self.killswitch, 5)
+        try:
+            self.notify.add_widget(Label(text='[color=#FF0000][b]' + message + '[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 5)
+        except Exception as exception:
+            self.showAlert(str(exception))
 
     def remove_user(self, user):
 
@@ -3076,22 +3375,25 @@ class AdminWindow(BoxLayout):
 
 
     def update_user_fields(self):
-        target = self.ids.ops_fields
-        target.clear_widgets()
+       try:
+            target = self.ids.ops_fields
+            target.clear_widgets()
 
-        self.name = TextInput(hint_text='Both Names', multiline=False, write_tab=False)
-        self.theid = TextInput(hint_text='id', multiline=False, input_filter = 'float', write_tab=False)
-        self.mobile = TextInput(hint_text='Mobile', input_filter = 'float', multiline=False, write_tab=False)
-        designation = Spinner(text='Operator', values=['Operator', 'Administrator'])
-        crud_submit = Button(text='Update', size_hint_x=None, width=100,
-                             on_release=lambda x: self.update_user(self.name.text.strip(), self.theid.text.strip(), designation.text.strip(),
-                                                                   self.mobile.text.strip()))
+            self.name = TextInput(hint_text='Both Names', multiline=False, write_tab=False)
+            self.theid = TextInput(hint_text='id', multiline=False, input_filter = 'float', write_tab=False)
+            self.mobile = TextInput(hint_text='Mobile', input_filter = 'float', multiline=False, write_tab=False)
+            designation = Spinner(text='Operator', values=['Operator', 'Administrator'])
+            crud_submit = Button(text='Update', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.update_user(self.name.text.strip(), self.theid.text.strip(), designation.text.strip(),
+                                                                       self.mobile.text.strip()))
 
-        target.add_widget(self.name)
-        target.add_widget(self.theid)
-        target.add_widget(designation)
-        target.add_widget(self.mobile)
-        target.add_widget(crud_submit)
+            target.add_widget(self.name)
+            target.add_widget(self.theid)
+            target.add_widget(designation)
+            target.add_widget(self.mobile)
+            target.add_widget(crud_submit)
+       except Exception as exception:
+           self.showAlert(str(exception))
 
     def update_user(self, name, id, designation, mobile):
         if name == '' or id == '' or mobile == '' or designation == '' or name.isalnum() == False:
@@ -3133,24 +3435,27 @@ class AdminWindow(BoxLayout):
 
 
     def add_user_fields(self):
-        target = self.ids.ops_fields
-        target.clear_widgets()
+       try:
+            target = self.ids.ops_fields
+            target.clear_widgets()
 
-        self.bothnames = TextInput(hint_text='Both Names', multiline=False, write_tab=False)
-        self.mobile = TextInput(hint_text='Mobile', input_filter = 'float', multiline=False, write_tab=False)
-        self.idnumber = TextInput(hint_text='Id Number', input_filter = 'float', multiline=False, write_tab=False)
-        designation = Spinner(text='Operator', values=['Operator', 'Administrator'])
+            self.bothnames = TextInput(hint_text='Both Names', multiline=False, write_tab=False)
+            self.mobile = TextInput(hint_text='Mobile', input_filter = 'float', multiline=False, write_tab=False)
+            self.idnumber = TextInput(hint_text='Id Number', input_filter = 'float', multiline=False, write_tab=False)
+            designation = Spinner(text='Operator', values=['Operator', 'Administrator'])
 
-        crud_submit = Button(text='Add', size_hint_x=None, width=100,
-                             on_release=lambda x: self.add_user(self.bothnames.text.strip(), self.mobile.text.strip(),
-                                                                self.idnumber.text.strip(),
-                                                                designation.text.strip()))
+            crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                                 on_release=lambda x: self.add_user(self.bothnames.text.strip(), self.mobile.text.strip(),
+                                                                    self.idnumber.text.strip(),
+                                                                    designation.text.strip()))
 
-        target.add_widget(self.bothnames)
-        target.add_widget(self.mobile)
-        target.add_widget(self.idnumber)
-        target.add_widget(designation)
-        target.add_widget(crud_submit)
+            target.add_widget(self.bothnames)
+            target.add_widget(self.mobile)
+            target.add_widget(self.idnumber)
+            target.add_widget(designation)
+            target.add_widget(crud_submit)
+       except Exception as exception:
+           self.showAlert(str(exception))
 
     def add_user(self, bothnames, mobile, idnumber, designation):
         try:

@@ -192,7 +192,7 @@
                     background_color: (.06, .47, .47, 1)
                     background_normal: ''
                     group: 'admin_navs'
-                    on_state: root.go_To_Expenses()
+                    on_state: root.change_screen(self)
 
 
                 Button:
@@ -365,13 +365,13 @@
                                     size_hint_y: None
                                     background_color: (.06, .47, .47, 1)
                                     height: 45
-                                    text: 'Code'
+                                    text: 'Name'
 
                                 Button:
                                     size_hint_y: None
                                     background_color: (.06, .47, .47, 1)
                                     height: 45
-                                    text: 'Name'
+                                    text: 'Code'
 
                                 Button:
                                     size_hint_y: None
@@ -1074,6 +1074,12 @@
                                     id: crud_add_p
                                     text: 'Negatives'
                                     on_release: root.load_negative_money()
+
+                                Button:
+                                    id: crud_add_p
+                                    text: 'Remove'
+                                    on_release: root.remove_transaction()
+
 
 
                     #END OF STANDALONE SCREEN

@@ -168,6 +168,13 @@
                     height: 45
                     text: 'Amount'
 
+                Button:
+                    size_hint_y: None
+                    background_color: (.06, .47, .47, 1)
+                    height: 45
+                    text: 'Id'
+
+
             BoxLayout:
                 id: yourecycleyou
                 orientation: 'vertical'
@@ -181,7 +188,7 @@
                     SelectableRecycleGridLayout:
                         padding: (0, 10)
                         spacing: (0, 10)
-                        cols: 3
+                        cols: 4
                         default_size: None, dp(50)
                         default_size_hint: 1, None
                         size_hint_y: None
@@ -223,6 +230,14 @@
                 size_hint_x: .4
                 background_color: (.06, .47, .47, 1)
                 on_release: root.expenses_submit()
+
+            Button:
+                padding: (10, 0)
+                id: file_trigger
+                text: 'Delete Expense'
+                size_hint_x: .4
+                background_color: (.06, .47, .47, 1)
+                on_release: root.delete_expense()
 
 
         BoxLayout:

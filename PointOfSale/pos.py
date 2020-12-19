@@ -803,8 +803,8 @@ class PosWindow(BoxLayout):
                     companyName = companyName + "\n\nSale Receipt\n\nOpp Golden Life Mall\nP.O BOX 3404-20100\nTEL: 0727441192\nMail: hiltonltd@yandex.com"
                     receiptNo = randint(1, 100000)
                     finalString = companyName + "\n\nReceipt No:" + str(receiptNo) + "\n\n" + self.getproductList() \
-                                  + "\n__________________\n" + "Total Due:        " + str(
-                        self.totaltoBePaid) + "\n__________________\n\n" + "Paid In:     " + paytype + "\n\n" + "Served By:       " + str(
+                                  + "\n____________________________\n" + "Total Due:        " + str(
+                        self.totaltoBePaid) + "\n____________________________\n\n" + "Paid In:     " + paytype + "\n\n" + "Served By:       " + str(
                         self.user) + "\n" + "Payment:           " + str(
                         self.finalvariables[1]) + "\nBalance:            " + str(self.finalvariables[0]) + "\n" + str(
                         date.today().strftime("%b-%d-%Y")) + "\n\n\nWelcome Back"
